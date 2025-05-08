@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "315841506138",
+    "project_id": "parkingupinedo",
+    "storage_bucket": "parkingupinedo.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:315841506138:android:f0bf95521ba99696c5e163",
+        "android_client_info": {
+          "package_name": "com.lksnext.parkingupinedo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "315841506138-k1um87oi2pieknfpdq46jl89pjj6phpf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBctHfzFJSw3yZDDtRuzKVf9WthYkw74qM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "315841506138-k1um87oi2pieknfpdq46jl89pjj6phpf.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

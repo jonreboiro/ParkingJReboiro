@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.lksnext.parkingplantilla">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/lks_icon"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/lks_icon"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.ParkingLKS">
+        <activity
+            android:name=".view.activity.RegisterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.activity.LoginActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".view.activity.MainActivity"
+            android:exported="true" />
+    </application>
+
+</manifest>

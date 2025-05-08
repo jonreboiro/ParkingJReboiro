@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">ParkingPlantilla</string>
+
+    <string name="selectDate">Selecciona una fecha</string>
+
+    <string name="fragment_main">Main</string>
+    <string name="fragment_step1">Step 1</string>
+    <string name="fragment_step2">Step 2</string>
+    <string name="fragment_end">End</string>
+    <string name="buscar">Buscar plazas libres</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
