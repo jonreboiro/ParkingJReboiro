@@ -24,6 +24,13 @@
         android:label="Seleccionar Plaza"
         tools:layout="@layout/fragment_seleccionar_plaza" />
 
+    <fragment
+        android:id="@+id/confirmarDetallesFragment"
+        android:name="com.lksnext.parkingplantilla.view.fragment.ConfirmarDetallesFragment"
+        android:label="Confirmar Detalles"
+        tools:layout="@layout/fragment_confirmar_detalles" />
+
+
 
     <!-- Añade una acción desde el fragmento del menú principal -->
     <action
@@ -34,5 +41,15 @@
     <action
         android:id="@+id/action_realizarReservaFragment_to_seleccionarPlazaFragment"
         app:destination="@id/seleccionarPlazaFragment" />
+
+    <!-- Navegación de SeleccionarPlaza a ConfirmarDetalles -->
+    <action
+        android:id="@+id/action_seleccionarPlazaFragment_to_confirmarDetallesFragment"
+        app:destination="@id/confirmarDetallesFragment" />
+
+    <!-- Navegación de ConfirmarDetalles a MainFragment -->
+    <action
+        android:id="@+id/action_confirmarDetallesFragment_to_mainFragment"
+        app:destination="@id/mainFragment" />
 
 </navigation>
