@@ -33,6 +33,12 @@ public class MainFragment extends Fragment {
                     .navigate(R.id.action_mainFragment_to_realizarReservaFragment);
         });
 
+        MaterialButton btnConsultarReservas = view.findViewById(R.id.btnConsultarReservas);
+        btnConsultarReservas.setOnClickListener(v -> {
+            NavHostFragment.findNavController(this)
+                    .navigate(R.id.action_mainFragment_to_consultarReservasFragment);
+        });
+
         return view;
     }
 

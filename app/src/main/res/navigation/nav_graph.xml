@@ -30,6 +30,25 @@
         android:label="Confirmar Detalles"
         tools:layout="@layout/fragment_confirmar_detalles" />
 
+    <fragment
+        android:id="@+id/consultarReservasFragment"
+        android:name="com.lksnext.parkingplantilla.view.fragment.ConsultarReservasFragment"
+        android:label="Consultar Reservas">
+        <action
+            android:id="@+id/action_consultarReservasFragment_to_historialReservasFragment"
+            app:destination="@id/historialReservasFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/historialReservasFragment"
+        android:name="com.lksnext.parkingplantilla.view.fragment.HistorialReservasFragment"
+        android:label="Historial de Reservas" />
+
+    <fragment
+        android:id="@+id/notificacionesFragment"
+        android:name="com.lksnext.parkingplantilla.view.fragment.NotificacionesFragment"
+        android:label="Notificaciones" />
+
 
 
     <!-- Añade una acción desde el fragmento del menú principal -->
@@ -51,5 +70,9 @@
     <action
         android:id="@+id/action_confirmarDetallesFragment_to_mainFragment"
         app:destination="@id/mainFragment" />
+
+    <action
+        android:id="@+id/action_mainFragment_to_consultarReservasFragment"
+        app:destination="@id/consultarReservasFragment" />
 
 </navigation>

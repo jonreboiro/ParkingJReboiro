@@ -9,6 +9,10 @@
         android:title="Mis reservas"
         android:icon="@drawable/ic_reservations_foreground"/>
     <item
+        android:id="@+id/notifications"
+        android:icon="@drawable/ic_notifications"
+        android:title="Notificaciones" />
+    <item
         android:id="@+id/person"
         android:title="Perfil"
         android:icon="@drawable/ic_person_foreground"/>
