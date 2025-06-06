@@ -18,8 +18,21 @@
         android:label="Realizar Reserva" >
     </fragment>
 
+    <fragment
+        android:id="@+id/seleccionarPlazaFragment"
+        android:name="com.lksnext.parkingplantilla.view.fragment.SeleccionarPlazaFragment"
+        android:label="Seleccionar Plaza"
+        tools:layout="@layout/fragment_seleccionar_plaza" />
+
+
     <!-- Añade una acción desde el fragmento del menú principal -->
     <action
         android:id="@+id/action_mainFragment_to_realizarReservaFragment"
         app:destination="@id/realizarReservaFragment" />
+
+    <!-- Añadir la acción de navegación desde RealizarReserva a SeleccionarPlaza -->
+    <action
+        android:id="@+id/action_realizarReservaFragment_to_seleccionarPlazaFragment"
+        app:destination="@id/seleccionarPlazaFragment" />
+
 </navigation>
