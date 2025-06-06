@@ -11,4 +11,15 @@
         android:label="@string/fragment_main"
         tools:layout="@layout/fragment_main">
     </fragment>
+
+    <fragment
+        android:id="@+id/realizarReservaFragment"
+        android:name="com.lksnext.parkingplantilla.view.fragment.RealizarReservaFragment"
+        android:label="Realizar Reserva" >
+    </fragment>
+
+    <!-- Añade una acción desde el fragmento del menú principal -->
+    <action
+        android:id="@+id/action_mainFragment_to_realizarReservaFragment"
+        app:destination="@id/realizarReservaFragment" />
 </navigation>
