@@ -7,32 +7,32 @@
 
     <fragment
         android:id="@+id/mainFragment"
-        android:name="com.lksnext.parkingplantilla.view.fragment.MainFragment"
+        android:name="com.lksnext.parkingJReboiro.view.fragment.MainFragment"
         android:label="@string/fragment_main"
         tools:layout="@layout/fragment_main">
     </fragment>
 
     <fragment
         android:id="@+id/realizarReservaFragment"
-        android:name="com.lksnext.parkingplantilla.view.fragment.RealizarReservaFragment"
+        android:name="com.lksnext.parkingJReboiro.view.fragment.RealizarReservaFragment"
         android:label="Realizar Reserva" >
     </fragment>
 
     <fragment
         android:id="@+id/seleccionarPlazaFragment"
-        android:name="com.lksnext.parkingplantilla.view.fragment.SeleccionarPlazaFragment"
+        android:name="com.lksnext.parkingJReboiro.view.fragment.SeleccionarPlazaFragment"
         android:label="Seleccionar Plaza"
         tools:layout="@layout/fragment_seleccionar_plaza" />
 
     <fragment
         android:id="@+id/confirmarDetallesFragment"
-        android:name="com.lksnext.parkingplantilla.view.fragment.ConfirmarDetallesFragment"
+        android:name="com.lksnext.parkingJReboiro.view.fragment.ConfirmarDetallesFragment"
         android:label="Confirmar Detalles"
         tools:layout="@layout/fragment_confirmar_detalles" />
 
     <fragment
         android:id="@+id/consultarReservasFragment"
-        android:name="com.lksnext.parkingplantilla.view.fragment.ConsultarReservasFragment"
+        android:name="com.lksnext.parkingJReboiro.view.fragment.ConsultarReservasFragment"
         android:label="Consultar Reservas">
         <action
             android:id="@+id/action_consultarReservasFragment_to_historialReservasFragment"
@@ -41,18 +41,18 @@
 
     <fragment
         android:id="@+id/historialReservasFragment"
-        android:name="com.lksnext.parkingplantilla.view.fragment.HistorialReservasFragment"
+        android:name="com.lksnext.parkingJReboiro.view.fragment.HistorialReservasFragment"
         android:label="Historial de Reservas" />
 
     <fragment
         android:id="@+id/notificacionesFragment"
-        android:name="com.lksnext.parkingplantilla.view.fragment.NotificacionesFragment"
+        android:name="com.lksnext.parkingJReboiro.view.fragment.NotificacionesFragment"
         android:label="Notificaciones" />
 
     <!-- Añadir dentro del elemento <navigation> en app/src/main/res/navigation/nav_graph.xml -->
     <fragment
         android:id="@+id/profileFragment"
-        android:name="com.lksnext.parkingplantilla.view.fragment.ProfileFragment"
+        android:name="com.lksnext.parkingJReboiro.view.fragment.ProfileFragment"
         android:label="Perfil"
         tools:layout="@layout/fragment_profile" />
 
