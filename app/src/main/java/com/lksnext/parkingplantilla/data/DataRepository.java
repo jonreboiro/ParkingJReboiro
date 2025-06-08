@@ -26,4 +26,7 @@ public class DataRepository {
             callback.onFailure();
         }
     }
+
+    public void logout() {
+    }
 }

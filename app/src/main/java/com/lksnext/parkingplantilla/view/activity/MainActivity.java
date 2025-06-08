@@ -48,7 +48,8 @@ public class MainActivity extends AppCompatActivity {
                 navController.navigate(R.id.notificacionesFragment);
                 return true;
             } else if (itemId == R.id.person) {
-                //TODO
+                navController.navigate(R.id.profileFragment);
+                return true;
             }
             return false;
         });

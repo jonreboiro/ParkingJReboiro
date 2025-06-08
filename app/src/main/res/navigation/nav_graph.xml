@@ -49,6 +49,13 @@
         android:name="com.lksnext.parkingplantilla.view.fragment.NotificacionesFragment"
         android:label="Notificaciones" />
 
+    <!-- Añadir dentro del elemento <navigation> en app/src/main/res/navigation/nav_graph.xml -->
+    <fragment
+        android:id="@+id/profileFragment"
+        android:name="com.lksnext.parkingplantilla.view.fragment.ProfileFragment"
+        android:label="Perfil"
+        tools:layout="@layout/fragment_profile" />
+
 
 
     <!-- Añade una acción desde el fragmento del menú principal -->
