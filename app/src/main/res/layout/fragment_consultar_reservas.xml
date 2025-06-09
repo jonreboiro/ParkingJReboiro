@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvConsultarReservasTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Mis Reservas"
+        android:textColor="@color/orange"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvReservasActivasLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Reserva Activa"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@+id/tvConsultarReservasTitle" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cvReservaActiva"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:cardBackgroundColor="#E6F7E6"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        app:layout_constraintTop_toBottomOf="@+id/tvReservasActivasLabel">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/tvPlazaActiva"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Plaza: A-23"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvFechaActiva"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Fecha: 25/05/2024"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvHoraActiva"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Horario: 14:00 - 16:00"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvEstadoActiva"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Estado: En curso"
+                android:textColor="#4CAF50"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <TextView
+        android:id="@+id/tvReservasFuturasLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Reservas Programadas"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@+id/cvReservaActiva" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvReservasFuturas"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/btnHistorialReservas"
+        app:layout_constraintTop_toBottomOf="@+id/tvReservasFuturasLabel" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnHistorialReservas"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ver Historial de Reservas"
+        app:cornerRadius="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

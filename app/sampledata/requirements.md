@@ -12,6 +12,68 @@ La división de clases será la siguiente:
 
 - **Modelos de dominio**: Hora, Plaza, Reserva.
 - **Activities**: LoginActivity, MainActivity, RegisterActivity.
+- **Interfaz**: LoginActivity, MainActivity, RegisterActivity.
+- **Interfaces (layouts)**: activity_login.xml, activity_main.xml, activity_register.xml.
+- **ViewModels**: LoginViewModel, MainViewModel, RegisterViewModel.
+
+### Descripción de la arquitectura
+
+#### Modelos de dominio
+Contienen los atributos y métodos relacionados con los datos de la aplicación.
+
+#### Activities
+Son las pantallas que se mostrarán al usuario.  
+Cada una de ellas tiene su propia interfaz y se encarga de gestionar el flujo de la aplicación.
+
+#### Interfaz
+Contiene los elementos visuales y su diseño.  
+Cada *Activity* tendrá su propio archivo XML que definirá cómo se verá la interfaz.
+
+#### ViewModels
+Gestionan la lógica de negocio y las operaciones relacionadas con los datos.  
+Se comunican con los modelos de dominio y actualizan la interfaz según sea necesario.
+
+---
+
+## Diagrama de clases
+![Diagrama](https://raw.githubusercontent.com/jesusgonzalezperez/PlantillaParking/main/app/sampledata/class_diagram.png)
+
+---
+
+## Estructura de carpetas
+La estructura del proyecto será la siguiente:
+
+```
+com/
+└── example/
+    └── parking/
+        ├── activities/
+        │   ├── LoginActivity.java
+        │   ├── MainActivity.java
+        │   └── RegisterActivity.java
+        ├── domain/
+        │   ├── Hora.java
+        │   ├── Plaza.java
+        │   └── Reserva.java
+        ├── viewmodels/
+        │   ├── LoginViewModel.java
+        │   ├── MainViewModel.java
+        │   └── RegisterViewModel.java
+        └── interfaces/
+            ├── activity_login.xml
+            ├── activity_main.xml
+            └── activity_register.xml
+```
+
+---
+
+## Clases
+
+### Clases de dominio
+
+- **Modelos de dominio**: Hora, Plaza, Reserva.
+- **Activities**: LoginActivity, MainActivity, RegisterActivity.
+- **Interfaz**: activity_login.xml, activity_main.xml, activity_register.xml.
 - **ViewModels**: LoginViewModel, MainViewModel, RegisterViewModel.
 - **Interfaces (layouts)**: en su respectivo apartado.
 

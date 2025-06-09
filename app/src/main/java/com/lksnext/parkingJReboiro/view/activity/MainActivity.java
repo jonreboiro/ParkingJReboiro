@@ -1,4 +1,4 @@
-package com.lksnext.parkingplantilla.view.activity;
+package com.lksnext.parkingJReboiro.view.activity;
 
 import android.os.Bundle;
 
@@ -9,8 +9,8 @@ import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.lksnext.parkingplantilla.R;
-import com.lksnext.parkingplantilla.databinding.ActivityMainBinding;
+import com.lksnext.parkingJReboiro.R;
+import com.lksnext.parkingJReboiro.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -43,9 +43,13 @@ public class MainActivity extends AppCompatActivity {
                 navController.navigate(R.id.mainFragment);
                 return true;
             } else if (itemId == R.id.reservations) {
-                //TODO
+                navController.navigate(R.id.consultarReservasFragment);
+            } else if (itemId == R.id.notifications) {
+                navController.navigate(R.id.notificacionesFragment);
+                return true;
             } else if (itemId == R.id.person) {
-                //TODO
+                navController.navigate(R.id.profileFragment);
+                return true;
             }
             return false;
         });

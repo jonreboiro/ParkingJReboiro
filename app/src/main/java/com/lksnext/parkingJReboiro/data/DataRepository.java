@@ -1,6 +1,6 @@
-package com.lksnext.parkingplantilla.data;
+package com.lksnext.parkingJReboiro.data;
 
-import com.lksnext.parkingplantilla.domain.Callback;
+import com.lksnext.parkingJReboiro.domain.Callback;
 
 public class DataRepository {
 
@@ -25,5 +25,8 @@ public class DataRepository {
         } catch (Exception e){
             callback.onFailure();
         }
+    }
+
+    public void logout() {
     }
 }

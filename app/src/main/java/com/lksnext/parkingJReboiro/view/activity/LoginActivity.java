@@ -1,4 +1,4 @@
-package com.lksnext.parkingplantilla.view.activity;
+package com.lksnext.parkingJReboiro.view.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -6,8 +6,8 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.lksnext.parkingplantilla.databinding.ActivityLoginBinding;
-import com.lksnext.parkingplantilla.viewmodel.LoginViewModel;
+import com.lksnext.parkingJReboiro.databinding.ActivityLoginBinding;
+import com.lksnext.parkingJReboiro.viewmodel.LoginViewModel;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -35,6 +35,11 @@ public class LoginActivity extends AppCompatActivity {
         //Acciones a realizar cuando el usuario clica el boton de crear cuenta (se cambia de pantalla)
         binding.createAccount.setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+            startActivity(intent);
+        });
+
+        binding.forgotPassword.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, RecuperarPasswordActivity.class);
             startActivity(intent);
         });
 
