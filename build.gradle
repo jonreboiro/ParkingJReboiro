@@ -8,7 +8,17 @@ buildscript {
         classpath 'androidx.navigation:navigation-safe-args-gradle-plugin:2.8.9'
     }
 }
+plugins {
+    id "org.sonarqube" version "6.2.0.5505"
+}
 
+sonar {
+    properties {
+        property "sonar.projectKey", "jonreboiro_ParkingJReboiro"
+        property "sonar.organization", "jonreboiro"
+        property "sonar.host.url", "https://sonarcloud.io"
+    }
+}4
 allprojects {
     repositories {
         google()
