@@ -53,8 +53,12 @@ public class RealizarReservaFragment extends Fragment {
         MaterialButton btnContinuar = view.findViewById(R.id.btnContinuar);
         btnContinuar.setOnClickListener(v -> {
             if (validarSeleccion()) {
-                // Navegar al siguiente paso
-                Navigation.findNavController(view).navigate(R.id.action_realizarReservaFragment_to_seleccionarPlazaFragment);
+                Bundle args = new Bundle();
+                args.putString("fecha", etFecha.getText().toString());
+                args.putInt("horaInicio", selectedHour);
+                args.putInt("minutosInicio", selectedMinute);
+                args.putInt("duracion", duracionSeleccionada);
+                Navigation.findNavController(view).navigate(R.id.action_realizarReservaFragment_to_seleccionarPlazaFragment, args);
             }
         });
     }

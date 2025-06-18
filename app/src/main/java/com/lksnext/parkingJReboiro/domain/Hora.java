@@ -29,4 +29,8 @@ public class Hora {
     public void setHoraFin(long horaFin) {
         this.horaFin = horaFin;
     }
+
+    public int getHora() {
+        return (int) (horaInicio / 1000 / 60 / 60);
+    }
 }
