@@ -12,7 +12,20 @@
           "package_name": "com.lksnext.parkingplantilla"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "964890008416-r9vb1i9l40jlqskqbflrs5m53qa5etaq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.lksnext.parkingplantilla",
+            "certificate_hash": "b007b6909629438ca797242474c857d9978232dd"
+          }
+        },
+        {
+          "client_id": "964890008416-setgmce466db15ib4d8vuhv7sbe4ks8j.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDM2PZnvgyHKkZ5iiUuBGWBEpdduD7ie88"
@@ -20,7 +33,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "964890008416-setgmce466db15ib4d8vuhv7sbe4ks8j.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

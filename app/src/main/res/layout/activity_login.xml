@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".view.activity.LoginActivity">
 
-
     <Button
         android:id="@+id/loginButton"
         style="?attr/materialButtonOutlinedStyle"
@@ -20,6 +19,15 @@
         app:layout_constraintTop_toBottomOf="@+id/password"
         app:strokeColor="@color/orange" />
 
+    <com.google.android.gms.common.SignInButton
+        android:id="@+id/googleSignInButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@id/loginButton"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"/>
+
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -28,7 +36,7 @@
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/loginButton">
+        app:layout_constraintTop_toBottomOf="@id/googleSignInButton">
 
         <TextView
             android:id="@+id/createAccount"
@@ -104,6 +112,5 @@
             android:inputType="textPassword" />
 
     </com.google.android.material.textfield.TextInputLayout>
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
