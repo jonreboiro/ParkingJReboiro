@@ -6,6 +6,9 @@ import android.util.Log;
 import android.util.Patterns;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
@@ -98,17 +101,42 @@ public class RegisterActivity extends AppCompatActivity {
     }
 
     private void registrarUsuario() {
+        binding.btnRegister.setEnabled(false); // Evita dobles clics
         String email = binding.emailText.getText().toString().trim();
         String password = binding.passwordText.getText().toString();
+        String username = binding.usernameText.getText().toString().trim();
+        String employeeId = binding.employeeIdText.getText().toString().trim();
 
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        startActivity(new Intent(this, MainActivity.class));
-                        finish();
+                        String uid = mAuth.getCurrentUser().getUid();
+                        Map<String, Object> userMap = new HashMap<>();
+                        userMap.put("username", username);
+                        userMap.put("email", email);
+                        userMap.put("employeeId", employeeId);
+                        userMap.put("phone", "");
+
+                        FirebaseFirestore.getInstance()
+                                .collection("users")
+                                .document(uid)
+                                .set(userMap)
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.i("REGISTER", "Usuario y datos guardados correctamente");
+                                    Toast.makeText(RegisterActivity.this, "Registro exitoso", Toast.LENGTH_SHORT).show();
+                                    startActivity(new Intent(RegisterActivity.this, MainActivity.class));
+                                    finish();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("REGISTER", "Error al guardar datos de usuario: " + e.getMessage());
+                                    Toast.makeText(RegisterActivity.this, "Error al guardar datos de usuario", Toast.LENGTH_LONG).show();
+                                    binding.btnRegister.setEnabled(true);
+                                });
                     } else {
                         String error = obtenerMensajeError(task.getException());
-                        Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+                        Log.e("REGISTER", "Error en el registro: " + error);
+                        Toast.makeText(RegisterActivity.this, error, Toast.LENGTH_LONG).show();
+                        binding.btnRegister.setEnabled(true);
                     }
                 });
     }
