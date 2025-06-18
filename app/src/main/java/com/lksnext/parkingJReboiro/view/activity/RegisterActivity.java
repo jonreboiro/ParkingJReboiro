@@ -2,47 +2,42 @@ package com.lksnext.parkingJReboiro.view.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.util.Patterns;
 import android.widget.Toast;
-
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.ViewModelProvider;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
 import com.lksnext.parkingJReboiro.databinding.ActivityRegisterBinding;
-import com.lksnext.parkingJReboiro.viewmodel.RegisterViewModel;
 
 public class RegisterActivity extends AppCompatActivity {
 
     private ActivityRegisterBinding binding;
-    private RegisterViewModel registerViewModel;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Asignamos la vista/interfaz de registro
         binding = ActivityRegisterBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        mAuth = FirebaseAuth.getInstance();
 
-        // Asignamos el viewModel de register
-        registerViewModel = new ViewModelProvider(this).get(RegisterViewModel.class);
+        FirebaseApp.initializeApp(this);
+        if (FirebaseApp.getApps(this).isEmpty()) {
+            Log.e("FIREBASE", "Firebase NO se ha inicializado correctamente");
+        } else {
+            Log.i("FIREBASE", "Firebase inicializado correctamente");
+        }
 
-        // Configurar botón de registro
         binding.btnRegister.setOnClickListener(v -> {
             if (validarFormulario()) {
-                // Aquí iría la lógica de registro con el ViewModel
-                Toast.makeText(this, "Registro exitoso", Toast.LENGTH_SHORT).show();
-
-                // Volver a la pantalla de login
-                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-                startActivity(intent);
-                finish();
+                registrarUsuario();
             }
         });
 
-        // Configurar navegación a login
         binding.goToLogin.setOnClickListener(v -> {
-            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(this, LoginActivity.class));
             finish();
         });
     }
@@ -50,7 +45,10 @@ public class RegisterActivity extends AppCompatActivity {
     private boolean validarFormulario() {
         boolean esValido = true;
 
-        // Validar campos obligatorios
+        String email = binding.emailText.getText().toString().trim();
+        String password = binding.passwordText.getText().toString();
+        String confirmPassword = binding.confirmPasswordText.getText().toString();
+
         if (binding.usernameText.getText().toString().trim().isEmpty()) {
             binding.usernameLayout.setError("Campo obligatorio");
             esValido = false;
@@ -58,8 +56,11 @@ public class RegisterActivity extends AppCompatActivity {
             binding.usernameLayout.setError(null);
         }
 
-        if (binding.emailText.getText().toString().trim().isEmpty()) {
+        if (email.isEmpty()) {
             binding.emailLayout.setError("Campo obligatorio");
+            esValido = false;
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            binding.emailLayout.setError("Email no válido");
             esValido = false;
         } else {
             binding.emailLayout.setError(null);
@@ -72,16 +73,12 @@ public class RegisterActivity extends AppCompatActivity {
             binding.employeeIdLayout.setError(null);
         }
 
-        if (binding.passwordText.getText().toString().trim().isEmpty()) {
-            binding.passwordLayout.setError("Campo obligatorio");
+        if (!esPasswordValida(password)) {
+            binding.passwordLayout.setError("Mín. 8 caracteres, mayúscula, minúscula y número");
             esValido = false;
         } else {
             binding.passwordLayout.setError(null);
         }
-
-        // Validar que las contraseñas coincidan
-        String password = binding.passwordText.getText().toString();
-        String confirmPassword = binding.confirmPasswordText.getText().toString();
 
         if (!password.equals(confirmPassword)) {
             binding.confirmPasswordLayout.setError("Las contraseñas no coinciden");
@@ -91,5 +88,40 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
         return esValido;
+    }
+
+    private boolean esPasswordValida(String password) {
+        return password.length() >= 8 &&
+                password.matches(".*[A-Z].*") &&
+                password.matches(".*[a-z].*") &&
+                password.matches(".*\\d.*");
+    }
+
+    private void registrarUsuario() {
+        String email = binding.emailText.getText().toString().trim();
+        String password = binding.passwordText.getText().toString();
+
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        startActivity(new Intent(this, MainActivity.class));
+                        finish();
+                    } else {
+                        String error = obtenerMensajeError(task.getException());
+                        Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private String obtenerMensajeError(Exception e) {
+        if (e != null && e.getMessage() != null) {
+            if (e.getMessage().contains("email address is already in use")) {
+                return "El correo ya está registrado";
+            }
+            if (e.getMessage().contains("The email address is badly formatted")) {
+                return "El formato del correo es incorrecto";
+            }
+        }
+        return "Error en el registro: " + (e != null ? e.getMessage() : "");
     }
 }
