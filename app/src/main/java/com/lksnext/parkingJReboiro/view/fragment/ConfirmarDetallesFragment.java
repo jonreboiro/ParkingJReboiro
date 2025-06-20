@@ -42,6 +42,8 @@ public class ConfirmarDetallesFragment extends Fragment {
             minutosInicio = getArguments().getInt("minutosInicio", 0);
             duracion = getArguments().getInt("duracion");
             plazaId = getArguments().getLong("plazaId");
+            String tipoPlaza = getArguments().getString("tipoPlaza", getTipoPorId(plazaId));
+
 
             // Calcular hora fin
             int totalMinInicio = horaInicio * 60 + minutosInicio;
@@ -55,7 +57,7 @@ public class ConfirmarDetallesFragment extends Fragment {
             ((TextView) view.findViewById(R.id.tvDuracion)).setText("Duración: " + duracion + " horas");
             ((TextView) view.findViewById(R.id.tvHoraFin)).setText("Hora de finalización: " + String.format("%02d:%02d", horaFin, minFin));
             ((TextView) view.findViewById(R.id.tvIdPlaza)).setText("ID de plaza: " + plazaId);
-            ((TextView) view.findViewById(R.id.tvTipoPlaza)).setText("Tipo de plaza: " + getTipoPorId(plazaId));
+            ((TextView) view.findViewById(R.id.tvTipoPlaza)).setText("Tipo de plaza: " + tipoPlaza);
         }
 
         // Configurar botón cancelar
@@ -123,10 +125,11 @@ public class ConfirmarDetallesFragment extends Fragment {
 
     private void guardarReserva(View view, long inicioMs, long finMs) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String tipoPlaza = getArguments().getString("tipoPlaza", getTipoPorId(plazaId)); // Obtener tipo de los argumentos
 
         // Crear objetos para guardar en Firestore
         Hora hora = new Hora(inicioMs, finMs);
-        Plaza plaza = new Plaza(plazaId, getTipoPorId(plazaId));
+        Plaza plaza = new Plaza(plazaId, tipoPlaza);
 
         Reserva reserva = new Reserva();
         reserva.setUserId(userId);

@@ -49,16 +49,15 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvPlazasParking"
+    <!-- Mapa SVG del parking en lugar del RecyclerView -->
+    <com.lksnext.parkingJReboiro.view.ParkingMapView
+        android:id="@+id/parkingMapView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
-        app:layout_constraintBottom_toTopOf="@id/llLeyenda"
         app:layout_constraintTop_toBottomOf="@id/cvInformacionReserva"
-        app:layout_constraintVertical_bias="0.0"
-        tools:layout_editor_absoluteX="16dp" />
+        app:layout_constraintBottom_toTopOf="@id/llLeyenda" />
 
     <LinearLayout
         android:id="@+id/llLeyenda"
@@ -90,7 +89,20 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Ocupada"/>
+            android:text="Ocupada"
+            android:layout_marginEnd="24dp"/>
+
+        <!-- Nuevo estado de selección -->
+        <View
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:background="@android:color/holo_blue_light"
+            android:layout_marginEnd="8dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Seleccionada"/>
     </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
@@ -98,7 +110,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Confirmar selección"
-        android:enabled="true"
+        android:enabled="false"
         android:layout_marginBottom="56dp"
         app:layout_constraintBottom_toBottomOf="parent"/>
 

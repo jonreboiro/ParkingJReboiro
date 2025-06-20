@@ -3,42 +3,44 @@ package com.lksnext.parkingJReboiro.view.fragment;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
-import androidx.recyclerview.widget.GridLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.lksnext.parkingJReboiro.R;
-import com.lksnext.parkingJReboiro.adapter.PlazaAdapter;
-import com.lksnext.parkingJReboiro.domain.Plaza;
 import com.lksnext.parkingJReboiro.domain.Reserva;
+import com.lksnext.parkingJReboiro.view.ParkingMapView;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
-public class SeleccionarPlazaFragment extends Fragment {
-    private RecyclerView rvPlazasParking;
-    private PlazaAdapter plazaAdapter;
-    private List<Plaza> listaPlazas = new ArrayList<>();
+public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView.OnPlazaSelectedListener {
+    private ParkingMapView parkingMapView;
     private Set<Long> plazasOcupadas = new HashSet<>();
+    private MaterialButton btnConfirmarPlaza;
 
     private String fecha;
-    private int horaInicio, duracion;
+    private int horaInicio, minutosInicio, duracion;
+    private long plazaSeleccionada; // Cambiado de Long a long
+    private String tipoPlaza = null;
+
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_seleccionar_plaza, container, false);
+    }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        int minutosInicio;
         if (getArguments() != null) {
             fecha = getArguments().getString("fecha");
             horaInicio = getArguments().getInt("horaInicio");
@@ -62,33 +64,29 @@ public class SeleccionarPlazaFragment extends Fragment {
         String horaFinStr = String.format("%02d:%02d", horaFin, minFin);
         tvHora.setText("Hora: " + horaInicioStr + " - " + horaFinStr);
 
-        // ... resto de tu código ...
-        rvPlazasParking = view.findViewById(R.id.rvPlazasParking);
-        rvPlazasParking.setLayoutManager(new GridLayoutManager(getContext(), 4));
+        // Inicializar ParkingMapView
+        parkingMapView = view.findViewById(R.id.parkingMapView);
+        parkingMapView.setOnPlazaSelectedListener(this);
 
-        plazaAdapter = new PlazaAdapter(listaPlazas, plazasOcupadas, plaza -> {
-            if (!plazasOcupadas.contains(plaza.getId())) {
-                Bundle args = new Bundle();
-                args.putString("fecha", fecha);
-                args.putInt("horaInicio", horaInicio);
-                args.putInt("minutosInicio", minutosInicio);
-                args.putInt("duracion", duracion);
-                args.putLong("plazaId", plaza.getId());
-                Navigation.findNavController(view).navigate(R.id.action_seleccionarPlazaFragment_to_confirmarDetallesFragment, args);
-            }
+        // Configurar botón confirmar
+        btnConfirmarPlaza = view.findViewById(R.id.btnConfirmarPlaza);
+        btnConfirmarPlaza.setEnabled(false);
+        btnConfirmarPlaza.setOnClickListener(v -> {
+            Bundle args = new Bundle();
+            args.putString("fecha", fecha);
+            args.putInt("horaInicio", horaInicio);
+            args.putInt("minutosInicio", minutosInicio);
+            args.putInt("duracion", duracion);
+            args.putLong("plazaId", plazaSeleccionada);
+            args.putString("tipoPlaza", tipoPlaza); // Añadir el tipo de plaza
+            Navigation.findNavController(view).navigate(
+                    R.id.action_seleccionarPlazaFragment_to_confirmarDetallesFragment, args);
         });
-        rvPlazasParking.setAdapter(plazaAdapter);
-
-        cargarReservasYActualizar(minutosInicio);
+        // Cargar plazas ocupadas
+        cargarReservasYActualizar();
     }
 
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        inicializarPlazasFijas();
-        return inflater.inflate(R.layout.fragment_seleccionar_plaza, container, false);
-    }
-
-    private void cargarReservasYActualizar(int minutosInicio) {
+    private void cargarReservasYActualizar() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         db.collection("reservas")
                 .whereEqualTo("fecha", fecha)
@@ -102,23 +100,35 @@ public class SeleccionarPlazaFragment extends Fragment {
 
                     for (QueryDocumentSnapshot doc : reservasSnap) {
                         Reserva reserva = doc.toObject(Reserva.class);
-                        long reservaInicio = reserva.getHoraInicio().getHoraInicio(); // ms desde medianoche
-                        long reservaFin = reserva.getHoraInicio().getHoraFin(); // ms desde medianoche
+                        long reservaInicio = reserva.getHoraInicio().getHoraInicio();
+                        long reservaFin = reserva.getHoraInicio().getHoraFin();
 
                         // Solapan si: miInicio < reservaFin && reservaInicio < miFin
                         if (miInicio < reservaFin && reservaInicio < miFin) {
                             plazasOcupadas.add(reserva.getPlazaId().getId());
                         }
                     }
-                    plazaAdapter.notifyDataSetChanged();
+
+                    // Actualizar el mapa con las plazas ocupadas
+                    if (parkingMapView != null) {
+                        parkingMapView.setPlazasOcupadas(plazasOcupadas);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Error al cargar reservas", Toast.LENGTH_SHORT).show();
                 });
     }
 
-    private void inicializarPlazasFijas() {
-        listaPlazas.clear();
-        listaPlazas.add(new Plaza(1L, "A"));
-        listaPlazas.add(new Plaza(2L, "B"));
-        listaPlazas.add(new Plaza(3L, "C"));
-        // Añade todas las plazas fijas aquí
+    @Override
+    public void onPlazaSelected(long plazaId, String tipo) {
+        // Se ejecuta cuando el usuario selecciona una plaza en el mapa
+        plazaSeleccionada = plazaId;
+        tipoPlaza = tipo;
+        btnConfirmarPlaza.setEnabled(true);
+
+        // Mostrar información sobre la plaza seleccionada
+        Toast.makeText(getContext(),
+                "Plaza " + plazaId + " (" + tipo + ") seleccionada",
+                Toast.LENGTH_SHORT).show();
     }
 }
