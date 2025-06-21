@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.Navigation;
+import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -77,15 +78,44 @@ public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView
         btnConfirmarPlaza = view.findViewById(R.id.btnConfirmarPlaza);
         btnConfirmarPlaza.setEnabled(false);
         btnConfirmarPlaza.setOnClickListener(v -> {
-            Bundle args = new Bundle();
-            args.putString("fecha", fecha);
-            args.putInt("horaInicio", horaInicio);
-            args.putInt("minutosInicio", minutosInicio);
-            args.putInt("duracion", duracion);
-            args.putLong("plazaId", plazaSeleccionada);
-            args.putString("tipoPlaza", tipoPlaza); // Añadir el tipo de plaza
-            Navigation.findNavController(view).navigate(
-                    R.id.action_seleccionarPlazaFragment_to_confirmarDetallesFragment, args);
+            if ("minusvalido".equals(tipoPlaza) || "electrico".equals(tipoPlaza)) {
+                String mensaje = "";
+                if ("minusvalido".equals(tipoPlaza)) {
+                    mensaje = "Estás a punto de reservar una plaza para personas con movilidad reducida. Recuerda que es obligatorio disponer de la Tarjeta Europea de Estacionamiento en caso de requerirse.";
+                } else if ("electrico".equals(tipoPlaza)) {
+                    mensaje = "Has seleccionado una plaza con punto de carga para vehículos eléctricos. Solo debe utilizarse mientras el vehículo esté en proceso de carga.";
+                }
+
+                // Crear y mostrar alerta
+                new AlertDialog.Builder(requireContext())
+                        .setTitle("Advertencia")
+                        .setMessage(mensaje)
+                        .setPositiveButton("Continuar", (dialog, which) -> {
+                            // Continuar con la navegación
+                            Bundle args = new Bundle();
+                            args.putString("fecha", fecha);
+                            args.putInt("horaInicio", horaInicio);
+                            args.putInt("minutosInicio", minutosInicio);
+                            args.putInt("duracion", duracion);
+                            args.putLong("plazaId", plazaSeleccionada);
+                            args.putString("tipoPlaza", tipoPlaza);
+                            Navigation.findNavController(requireView()).navigate(
+                                    R.id.action_seleccionarPlazaFragment_to_confirmarDetallesFragment, args);
+                        })
+                        .setNegativeButton("Cancelar", null)
+                        .show();
+            } else {
+                // Si es una plaza normal, continuar directamente
+                Bundle args = new Bundle();
+                args.putString("fecha", fecha);
+                args.putInt("horaInicio", horaInicio);
+                args.putInt("minutosInicio", minutosInicio);
+                args.putInt("duracion", duracion);
+                args.putLong("plazaId", plazaSeleccionada);
+                args.putString("tipoPlaza", tipoPlaza);
+                Navigation.findNavController(requireView()).navigate(
+                        R.id.action_seleccionarPlazaFragment_to_confirmarDetallesFragment, args);
+            }
         });
         // Cargar plazas ocupadas
         cargarReservasYActualizar();
