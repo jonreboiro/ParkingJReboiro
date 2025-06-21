@@ -116,7 +116,7 @@
         android:textStyle="bold"
         android:padding="8dp"
         android:background="#F3F3F3"
-        android:layout_marginBottom="12dp"
+        android:layout_marginBottom="6dp"
         app:layout_constraintBottom_toTopOf="@id/btnConfirmarPlaza"/>
 
     <com.google.android.material.button.MaterialButton
@@ -125,7 +125,7 @@
         android:layout_height="wrap_content"
         android:text="Confirmar selección"
         android:enabled="false"
-        android:layout_marginBottom="24dp"
+        android:layout_marginBottom="35dp"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
