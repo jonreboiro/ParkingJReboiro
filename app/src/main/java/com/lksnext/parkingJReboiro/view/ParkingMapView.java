@@ -45,6 +45,10 @@ public class ParkingMapView extends View {
     private final int COLOR_DISPONIBLE = Color.parseColor("#EBFFEE");
     private final int COLOR_OCUPADA = Color.parseColor("#FFCCCC");
     private static final int COLOR_SELECCIONADA = Color.parseColor("#4287f5");
+
+    private Paint paintPatron;
+    private static final float PATRON_ESPACIADO = 12f;
+
     // Listener para selecciones
     private OnPlazaSelectedListener listener;
 
@@ -69,6 +73,10 @@ public class ParkingMapView extends View {
 
     private void init(Context context) {
         paint.setAntiAlias(true);
+
+        paintPatron = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paintPatron.setStrokeWidth(2f);
+        paintPatron.setStyle(Paint.Style.STROKE);
 
         // Cargar el SVG
         try {
@@ -152,6 +160,7 @@ public class ParkingMapView extends View {
         // Dibujar plazas según su estado
         for (Map.Entry<String, RectF> entry : plazaBounds.entrySet()) {
             String plazaId = entry.getKey();
+            RectF rect = entry.getValue();
 
             // Extraer el ID numérico de la plaza (por ejemplo, de "plaza_1_minusvalido" extraemos 1)
             Pattern pattern = Pattern.compile("plaza_(\\d+)_");
@@ -163,14 +172,17 @@ public class ParkingMapView extends View {
                 // Determinar el color según el estado
                 if (idNumerico == plazaSeleccionadaId) {
                     paint.setColor(COLOR_SELECCIONADA);
+                    canvas.drawRect(rect, paint);
+                    dibujarPatronPuntos(canvas, rect);
                 } else if (plazasOcupadas != null && plazasOcupadas.contains(idNumerico)) {
                     paint.setColor(COLOR_OCUPADA);
+                    canvas.drawRect(rect, paint);
+                    dibujarPatronDiagonales(canvas, rect);
                 } else {
                     paint.setColor(COLOR_DISPONIBLE);
+                    canvas.drawRect(rect, paint);
                 }
 
-                // Dibujar la plaza con el color correspondiente
-                canvas.drawRect(entry.getValue(), paint);
             }
         }
 
@@ -178,6 +190,37 @@ public class ParkingMapView extends View {
         svgParking.renderToCanvas(canvas);
 
         canvas.restore();
+    }
+
+    private void dibujarPatronPuntos(Canvas canvas, RectF rect) {
+        paintPatron.setColor(Color.WHITE);
+        paintPatron.setStyle(Paint.Style.FILL);
+
+        float startX = rect.left + PATRON_ESPACIADO/2;
+        float startY = rect.top + PATRON_ESPACIADO/2;
+
+        for (float x = startX; x <= rect.right; x += PATRON_ESPACIADO) {
+            for (float y = startY; y <= rect.bottom; y += PATRON_ESPACIADO) {
+                canvas.drawCircle(x, y, 2f, paintPatron);
+            }
+        }
+    }
+
+    private void dibujarPatronDiagonales(Canvas canvas, RectF rect) {
+        paintPatron.setColor(Color.WHITE);
+        paintPatron.setStyle(Paint.Style.STROKE);
+        paintPatron.setStrokeWidth(2f);
+
+        // Dibujar líneas diagonales de esquina a esquina
+        for (float offset = 0; offset < rect.width() + rect.height(); offset += PATRON_ESPACIADO) {
+            // Líneas descendentes (esquina superior izquierda a inferior derecha)
+            float startX = Math.max(rect.left, rect.left + offset - rect.height());
+            float startY = Math.min(rect.top + offset, rect.bottom);
+            float stopX = Math.min(rect.left + offset, rect.right);
+            float stopY = Math.max(rect.top, rect.top + offset - rect.width());
+
+            canvas.drawLine(startX, startY, stopX, stopY, paintPatron);
+        }
     }
 
     @Override

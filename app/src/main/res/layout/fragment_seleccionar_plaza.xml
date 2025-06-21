@@ -57,7 +57,8 @@
         android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
         app:layout_constraintTop_toBottomOf="@id/cvInformacionReserva"
-        app:layout_constraintBottom_toTopOf="@id/llLeyenda" />
+        app:layout_constraintBottom_toTopOf="@id/llLeyenda"
+        app:layout_constraintVertical_weight="1"/>
 
     <LinearLayout
         android:id="@+id/llLeyenda"
@@ -105,13 +106,26 @@
             android:text="Seleccionada"/>
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/tvPlazaSeleccionada"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Selecciona una plaza"
+        android:textAlignment="center"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:padding="8dp"
+        android:background="#F3F3F3"
+        android:layout_marginBottom="12dp"
+        app:layout_constraintBottom_toTopOf="@id/btnConfirmarPlaza"/>
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnConfirmarPlaza"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Confirmar selección"
         android:enabled="false"
-        android:layout_marginBottom="56dp"
+        android:layout_marginBottom="24dp"
         app:layout_constraintBottom_toBottomOf="parent"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

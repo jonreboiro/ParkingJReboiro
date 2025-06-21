@@ -32,6 +32,8 @@ public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView
     private long plazaSeleccionada; // Cambiado de Long a long
     private String tipoPlaza = null;
 
+    private TextView tvPlazaSeleccionada;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_seleccionar_plaza, container, false);
@@ -63,6 +65,9 @@ public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView
         String horaInicioStr = String.format("%02d:%02d", horaInicio, minutosInicio);
         String horaFinStr = String.format("%02d:%02d", horaFin, minFin);
         tvHora.setText("Hora: " + horaInicioStr + " - " + horaFinStr);
+
+        tvPlazaSeleccionada = view.findViewById(R.id.tvPlazaSeleccionada);
+        tvPlazaSeleccionada.setText("Selecciona una plaza");
 
         // Inicializar ParkingMapView
         parkingMapView = view.findViewById(R.id.parkingMapView);
@@ -126,9 +131,20 @@ public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView
         tipoPlaza = tipo;
         btnConfirmarPlaza.setEnabled(true);
 
-        // Mostrar información sobre la plaza seleccionada
-        Toast.makeText(getContext(),
-                "Plaza " + plazaId + " (" + tipo + ") seleccionada",
-                Toast.LENGTH_SHORT).show();
+        String tipoTexto = getTipoPlazaTexto(tipo);
+        tvPlazaSeleccionada.setText("Plaza seleccionada: " + plazaId + " (" + tipoTexto + ")");
+
+    }
+
+    private String getTipoPlazaTexto(String tipo) {
+        switch (tipo) {
+            case "minusvalido":
+                return "Minusválidos";
+            case "electrico":
+                return "Vehículo eléctrico";
+            case "normal":
+            default:
+                return "Estándar";
+        }
     }
 }
