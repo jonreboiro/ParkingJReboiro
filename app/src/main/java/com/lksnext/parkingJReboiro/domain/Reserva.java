@@ -67,4 +67,8 @@ public class Reserva {
     public void setId(String id) {
         this.id = id;
     }
+
+    public void setUserId(String userId) {
+        this.usuario = userId;
+    }
 }

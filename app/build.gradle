@@ -48,6 +48,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth'
     implementation 'com.google.android.gms:play-services-auth:21.1.0'
     implementation 'com.google.firebase:firebase-firestore:25.1.4'
+    implementation 'com.caverock:androidsvg:1.4'
 
     testImplementation 'junit:junit:4.+'
     testImplementation 'androidx.arch.core:core-testing:2.2.0'
