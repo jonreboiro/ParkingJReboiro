@@ -25,19 +25,31 @@ public class ReservaHistorialAdapter extends RecyclerView.Adapter<ReservaHistori
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_reserva, parent, false);
+                .inflate(R.layout.item_reserva_historial, parent, false);
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Reserva reserva = reservas.get(position);
-        holder.tvPlaza.setText("Plaza: " + reserva.getPlazaId().getId());
+
+        // Obtener tipo de plaza directamente usando el método getTipo()
+        String tipoPlaza = reserva.getPlazaId().getTipo();
+        holder.tvPlaza.setText("Plaza: " + tipoPlaza + " - " + reserva.getPlazaId().getId());
         holder.tvFecha.setText("Fecha: " + reserva.getFecha());
-        // Suponiendo que toString() es el método correcto para obtener la hora como string
-        holder.tvHorario.setText("Horario: " + reserva.getHoraInicio().toString() + " a " + reserva.getHoraFin().toString());
-        // Añadiendo un estado predeterminado
-        holder.tvEstado.setText("Estado: Pendiente"); // Ajustar según la lógica de tu aplicación
+
+        // Formatear horario
+        long horaInicioMs = reserva.getHoraInicio().getHoraInicio();
+        long horaFinMs = reserva.getHoraInicio().getHoraFin();
+
+        int horaInicio = (int)(horaInicioMs / (60 * 60 * 1000));
+        int minInicio = (int)((horaInicioMs % (60 * 60 * 1000)) / (60 * 1000));
+
+        int horaFin = (int)(horaFinMs / (60 * 60 * 1000));
+        int minFin = (int)((horaFinMs % (60 * 60 * 1000)) / (60 * 1000));
+
+        holder.tvHorario.setText(String.format("Horario: %02d:%02d - %02d:%02d",
+                horaInicio, minInicio, horaFin, minFin));
     }
 
     @Override
@@ -46,14 +58,13 @@ public class ReservaHistorialAdapter extends RecyclerView.Adapter<ReservaHistori
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvPlaza, tvFecha, tvHorario, tvEstado;
+        TextView tvPlaza, tvFecha, tvHorario;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvPlaza = itemView.findViewById(R.id.tvPlazaReserva);
             tvFecha = itemView.findViewById(R.id.tvFechaReserva);
             tvHorario = itemView.findViewById(R.id.tvHorarioReserva);
-            tvEstado = itemView.findViewById(R.id.tvEstadoReserva);
         }
     }
 }

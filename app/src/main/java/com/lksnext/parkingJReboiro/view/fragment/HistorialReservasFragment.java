@@ -23,9 +23,14 @@ import com.lksnext.parkingJReboiro.adapter.ReservaHistorialAdapter;
 import com.lksnext.parkingJReboiro.data.ReservationManager;
 import com.lksnext.parkingJReboiro.domain.Reserva;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Locale;
 
 public class HistorialReservasFragment extends Fragment {
 
@@ -93,6 +98,18 @@ public class HistorialReservasFragment extends Fragment {
                 reservasPasadas.clear();
                 reservasPasadas.addAll(reservasClasificadas.get("pasadas"));
 
+                // Ordenar de más reciente a más antigua
+                Collections.sort(reservasPasadas, (r1, r2) -> {
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                    try {
+                        Date fecha1 = sdf.parse(r1.getFecha());
+                        Date fecha2 = sdf.parse(r2.getFecha());
+                        return fecha2.compareTo(fecha1); // Orden descendente (más reciente primero)
+                    } catch (ParseException e) {
+                        return 0;
+                    }
+                });
+
                 if (reservasPasadas.isEmpty()) {
                     tvNoReservas.setVisibility(View.VISIBLE);
                 } else {
@@ -117,4 +134,5 @@ public class HistorialReservasFragment extends Fragment {
         tvNoReservas.setVisibility(View.VISIBLE);
         rvHistorialReservas.setVisibility(View.GONE);
     }
+
 }
