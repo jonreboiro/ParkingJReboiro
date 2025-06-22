@@ -74,6 +74,11 @@ public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView
         parkingMapView = view.findViewById(R.id.parkingMapView);
         parkingMapView.setOnPlazaSelectedListener(this);
 
+        MaterialButton btnVolverAtras = view.findViewById(R.id.btnVolverAtras);
+        btnVolverAtras.setOnClickListener(v -> {
+            Navigation.findNavController(requireView()).navigateUp();
+        });
+
         // Configurar botón confirmar
         btnConfirmarPlaza = view.findViewById(R.id.btnConfirmarPlaza);
         btnConfirmarPlaza.setEnabled(false);
