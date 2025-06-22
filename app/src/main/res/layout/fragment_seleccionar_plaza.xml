@@ -135,31 +135,44 @@
             android:layout_marginTop="12dp"
             app:layout_constraintTop_toBottomOf="@id/svLeyenda"/>
 
-        <!-- Layout para contener los botones en fila -->
         <LinearLayout
             android:id="@+id/llBotones"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:orientation="vertical"
             android:layout_marginTop="12dp"
             app:layout_constraintTop_toBottomOf="@id/tvPlazaSeleccionada">
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnVolverAtras"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Cambiar fecha/hora"
-                android:layout_marginEnd="8dp"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnVolverAtras"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Cambiar fecha/hora"
+                    android:layout_marginEnd="8dp"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnConfirmarPlaza"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Confirmar selección"
+                    android:enabled="false"/>
+            </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnConfirmarPlaza"
-                android:layout_width="0dp"
+                android:id="@+id/btnCancelarReserva"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Confirmar selección"
-                android:enabled="false"/>
+                android:text="Cancelar reserva"
+                android:layout_marginTop="8dp"
+                style="@style/Widget.MaterialComponents.Button.TextButton"/>
         </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>

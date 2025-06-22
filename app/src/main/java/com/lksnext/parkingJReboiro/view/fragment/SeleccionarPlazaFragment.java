@@ -79,6 +79,20 @@ public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView
             Navigation.findNavController(requireView()).navigateUp();
         });
 
+        MaterialButton btnCancelarReserva = view.findViewById(R.id.btnCancelarReserva);
+        btnCancelarReserva.setOnClickListener(v -> {
+            new AlertDialog.Builder(requireContext())
+                    .setTitle("Cancelar reserva")
+                    .setMessage("¿Estás seguro de que quieres cancelar el proceso de reserva?")
+                    .setPositiveButton("Sí", (dialog, which) -> {
+                        // Navegar a la pantalla principal (reemplaza R.id.action_to_home con tu acción correcta)
+                        Navigation.findNavController(requireView()).navigate(
+                                R.id.action_seleccionarPlazaFragment_to_mainFragment);
+                    })
+                    .setNegativeButton("No", null)
+                    .show();
+        });
+
         // Configurar botón confirmar
         btnConfirmarPlaza = view.findViewById(R.id.btnConfirmarPlaza);
         btnConfirmarPlaza.setEnabled(false);

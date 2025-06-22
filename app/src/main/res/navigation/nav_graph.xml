@@ -82,4 +82,14 @@
         android:id="@+id/action_mainFragment_to_consultarReservasFragment"
         app:destination="@id/consultarReservasFragment" />
 
+    <action
+        android:id="@+id/action_seleccionarPlazaFragment_to_mainFragment"
+        app:destination="@id/mainFragment" />
+
+    <action
+        android:id="@+id/action_confirmarDetallesFragment_to_seleccionarPlazaFragment"
+        app:destination="@id/seleccionarPlazaFragment"
+        app:popUpTo="@id/seleccionarPlazaFragment"
+        app:popUpToInclusive="true" />
+
 </navigation>

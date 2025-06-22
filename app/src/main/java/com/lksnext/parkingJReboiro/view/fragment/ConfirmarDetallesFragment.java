@@ -65,6 +65,18 @@ public class ConfirmarDetallesFragment extends Fragment {
             Navigation.findNavController(view).navigate(R.id.action_confirmarDetallesFragment_to_mainFragment);
         });
 
+        // Configurar botón volver a selección de plazas
+        view.findViewById(R.id.btnVolverSeleccion).setOnClickListener(v -> {
+            Bundle args = new Bundle();
+            args.putString("fecha", fecha);
+            args.putInt("horaInicio", horaInicio);
+            args.putInt("minutosInicio", minutosInicio);
+            args.putInt("duracion", duracion);
+
+            Navigation.findNavController(view).navigate(
+                    R.id.action_confirmarDetallesFragment_to_seleccionarPlazaFragment, args);
+        });
+
         // Configurar botón confirmar
         view.findViewById(R.id.btnConfirmar).setOnClickListener(v -> {
             verificarYGuardarReserva(v);
