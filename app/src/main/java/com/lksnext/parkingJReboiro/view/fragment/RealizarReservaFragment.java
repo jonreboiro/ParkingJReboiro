@@ -12,11 +12,13 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.slider.Slider;
 import com.lksnext.parkingJReboiro.R;
+import com.lksnext.parkingJReboiro.viewmodel.NuevaReservaViewModel;
 
 import java.util.Calendar;
 
@@ -25,6 +27,7 @@ public class RealizarReservaFragment extends Fragment {
     private Slider sliderDuracion;
     private int selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute;
     private int duracionSeleccionada = 1;
+    private NuevaReservaViewModel viewModel;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -35,30 +38,34 @@ public class RealizarReservaFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        viewModel = new ViewModelProvider(requireActivity()).get(NuevaReservaViewModel.class);
+
         etFecha = view.findViewById(R.id.etFecha);
         etHoraInicio = view.findViewById(R.id.etHoraInicio);
         sliderDuracion = view.findViewById(R.id.sliderDuracion);
 
-        // Selección de fecha
         etFecha.setOnClickListener(v -> mostrarDatePicker());
-        // Selección de hora
         etHoraInicio.setOnClickListener(v -> mostrarTimePicker());
 
-        // Slider duración
         sliderDuracion.addOnChangeListener((slider, value, fromUser) -> {
             duracionSeleccionada = (int) value;
         });
 
-        // Botón continuar
+        // Observa errores del ViewModel
+        viewModel.getMensajeError().observe(getViewLifecycleOwner(), msg -> {
+            if (msg != null) Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+        });
+
         MaterialButton btnContinuar = view.findViewById(R.id.btnContinuar);
         btnContinuar.setOnClickListener(v -> {
-            if (validarSeleccion()) {
-                Bundle args = new Bundle();
-                args.putString("fecha", etFecha.getText().toString());
-                args.putInt("horaInicio", selectedHour);
-                args.putInt("minutosInicio", selectedMinute);
-                args.putInt("duracion", duracionSeleccionada);
-                Navigation.findNavController(view).navigate(R.id.action_realizarReservaFragment_to_seleccionarPlazaFragment, args);
+            // Guarda los datos en el ViewModel
+            viewModel.setFecha(etFecha.getText().toString());
+            viewModel.setHoraInicio(selectedHour);
+            viewModel.setMinutosInicio(selectedMinute);
+            viewModel.setDuracion(duracionSeleccionada);
+
+            if (viewModel.validarSeleccion(selectedYear, selectedMonth, selectedDay)) {
+                Navigation.findNavController(view).navigate(R.id.action_realizarReservaFragment_to_seleccionarPlazaFragment);
             }
         });
     }
@@ -91,26 +98,5 @@ public class RealizarReservaFragment extends Fragment {
                 },
                 ahora.get(Calendar.HOUR_OF_DAY), ahora.get(Calendar.MINUTE), true);
         timePicker.show();
-    }
-
-    private boolean validarSeleccion() {
-        // Validar fecha y hora seleccionadas
-        if (etFecha.getText().toString().isEmpty() || etHoraInicio.getText().toString().isEmpty()) {
-            Toast.makeText(getContext(), "Selecciona fecha y hora", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-        // Validar que la fecha/hora no sea pasada
-        Calendar seleccionada = Calendar.getInstance();
-        seleccionada.set(selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute, 0);
-        if (seleccionada.before(Calendar.getInstance())) {
-            Toast.makeText(getContext(), "No puedes seleccionar una fecha/hora pasada", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-        // Validar duración
-        if (duracionSeleccionada < 1 || duracionSeleccionada > 8) {
-            Toast.makeText(getContext(), "Duración debe ser entre 1 y 8 horas", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-        return true;
     }
 }
