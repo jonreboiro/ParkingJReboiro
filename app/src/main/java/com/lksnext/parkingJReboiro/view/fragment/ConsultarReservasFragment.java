@@ -116,6 +116,7 @@ public class ConsultarReservasFragment extends Fragment {
         viewModel.getOperacionExitosa().observe(getViewLifecycleOwner(), exitoso -> {
             if (Boolean.TRUE.equals(exitoso)) {
                 Toast.makeText(requireContext(), "Reserva cancelada con éxito", Toast.LENGTH_SHORT).show();
+                viewModel.resetOperacionExitosa();
             }
         });
     }

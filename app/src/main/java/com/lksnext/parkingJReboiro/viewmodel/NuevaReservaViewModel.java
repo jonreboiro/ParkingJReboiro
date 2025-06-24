@@ -286,4 +286,9 @@ public class NuevaReservaViewModel extends ViewModel {
             return String.format("%02d:%02d", horaFin, minFin);
         }
     }
+
+    public void limpiarMensajeError() {
+        mensajeError.setValue(null);
+    }
+
 }

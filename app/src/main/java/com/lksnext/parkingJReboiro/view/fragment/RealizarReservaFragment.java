@@ -54,6 +54,7 @@ public class RealizarReservaFragment extends Fragment {
         // Observa errores del ViewModel
         viewModel.getMensajeError().observe(getViewLifecycleOwner(), msg -> {
             if (msg != null) Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+            viewModel.limpiarMensajeError();
         });
 
         MaterialButton btnContinuar = view.findViewById(R.id.btnContinuar);

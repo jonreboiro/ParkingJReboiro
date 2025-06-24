@@ -210,6 +210,10 @@ public class ReservasViewModel extends ViewModel {
         timerRunning = true;
     }
 
+    public void resetOperacionExitosa() {
+        operacionExitosa.setValue(null);
+    }
+
     public void detenerTemporizador() {
         if (countDownTimer != null && timerRunning) {
             countDownTimer.cancel();
