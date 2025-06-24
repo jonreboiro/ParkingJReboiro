@@ -15,7 +15,12 @@ public class Plaza {
     }
 
     public String getTipo() {
-        return tipo;
+        return switch (tipo) {
+            case "normal" -> "Estándar";
+            case "minusvalido" -> "Minusválidos";
+            case "electrico" -> "Carga eléctrica";
+            default -> "Estándar";
+        };
     }
 
     public void setTipo(String tipo) {

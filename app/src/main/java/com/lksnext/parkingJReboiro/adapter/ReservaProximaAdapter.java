@@ -8,24 +8,32 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
 import com.lksnext.parkingJReboiro.R;
+import com.lksnext.parkingJReboiro.domain.Plaza;
 import com.lksnext.parkingJReboiro.domain.Reserva;
 
 import java.util.List;
 
-public class ReservaHistorialAdapter extends RecyclerView.Adapter<ReservaHistorialAdapter.ViewHolder> {
+public class ReservaProximaAdapter extends RecyclerView.Adapter<ReservaProximaAdapter.ViewHolder> {
 
     private List<Reserva> reservas;
+    private OnReservaCancelarListener listener;
 
-    public ReservaHistorialAdapter(List<Reserva> reservas) {
+    public interface OnReservaCancelarListener {
+        void onCancelarReserva(Reserva reserva, int position);
+    }
+
+    public ReservaProximaAdapter(List<Reserva> reservas, OnReservaCancelarListener listener) {
         this.reservas = reservas;
+        this.listener = listener;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_reserva_historial, parent, false);
+                .inflate(R.layout.item_reserva_proxima, parent, false);
         return new ViewHolder(view);
     }
 
@@ -33,9 +41,9 @@ public class ReservaHistorialAdapter extends RecyclerView.Adapter<ReservaHistori
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Reserva reserva = reservas.get(position);
 
-        // Obtener tipo de plaza directamente usando el método getTipo()
-        String tipoPlaza = reserva.getPlazaId().getTipo();
-        holder.tvPlaza.setText("Plaza: " + tipoPlaza + " - " + reserva.getPlazaId().getId());
+        // Obtener tipo de plaza
+        String tipoPlaza = getTipoPorId(reserva.getPlazaId());
+        holder.tvPlaza.setText("Plaza: " + tipoPlaza + "-" + reserva.getPlazaId().getId());
         holder.tvFecha.setText("Fecha: " + reserva.getFecha());
 
         // Formatear horario
@@ -50,6 +58,15 @@ public class ReservaHistorialAdapter extends RecyclerView.Adapter<ReservaHistori
 
         holder.tvHorario.setText(String.format("Horario: %02d:%02d - %02d:%02d",
                 horaInicio, minInicio, horaFin, minFin));
+
+        holder.tvEstado.setText("Estado: Programada");
+
+        // Configurar botón de cancelar
+        holder.btnCancelar.setOnClickListener(v -> {
+            if (listener != null) {
+                listener.onCancelarReserva(reserva, holder.getAdapterPosition());
+            }
+        });
     }
 
     @Override
@@ -57,14 +74,21 @@ public class ReservaHistorialAdapter extends RecyclerView.Adapter<ReservaHistori
         return reservas.size();
     }
 
+    private String getTipoPorId(Plaza plaza) {
+        return plaza.getTipo();
+    }
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvPlaza, tvFecha, tvHorario;
+        TextView tvPlaza, tvFecha, tvHorario, tvEstado;
+        MaterialButton btnCancelar;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvPlaza = itemView.findViewById(R.id.tvPlazaReserva);
             tvFecha = itemView.findViewById(R.id.tvFechaReserva);
             tvHorario = itemView.findViewById(R.id.tvHorarioReserva);
+            tvEstado = itemView.findViewById(R.id.tvEstadoReserva);
+            btnCancelar = itemView.findViewById(R.id.btnCancelarReserva);
         }
     }
 }
