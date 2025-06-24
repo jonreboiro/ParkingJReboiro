@@ -1,8 +1,140 @@
 package com.lksnext.parkingJReboiro.viewmodel;
 
+import android.util.Log;
+import android.util.Patterns;
+
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class RegisterViewModel extends ViewModel {
-    // Aquí puedes declarar los LiveData y métodos necesarios para la vista de registro
-    // Por ejemplo, un LiveData para el email, contraseña y usuario
+
+    private final FirebaseAuth mAuth = FirebaseAuth.getInstance();
+
+    // LiveData para errores de validación
+    private final MutableLiveData<String> usernameError = new MutableLiveData<>();
+    private final MutableLiveData<String> emailError = new MutableLiveData<>();
+    private final MutableLiveData<String> employeeIdError = new MutableLiveData<>();
+    private final MutableLiveData<String> passwordError = new MutableLiveData<>();
+    private final MutableLiveData<String> confirmPasswordError = new MutableLiveData<>();
+
+    // LiveData para el estado del registro
+    private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
+    private final MutableLiveData<Boolean> registrationSuccess = new MutableLiveData<>();
+    private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
+
+    // Getters para los LiveData
+    public LiveData<String> getUsernameError() { return usernameError; }
+    public LiveData<String> getEmailError() { return emailError; }
+    public LiveData<String> getEmployeeIdError() { return employeeIdError; }
+    public LiveData<String> getPasswordError() { return passwordError; }
+    public LiveData<String> getConfirmPasswordError() { return confirmPasswordError; }
+    public LiveData<Boolean> isLoading() { return isLoading; }
+    public LiveData<Boolean> getRegistrationSuccess() { return registrationSuccess; }
+    public LiveData<String> getErrorMessage() { return errorMessage; }
+
+    public boolean validarFormulario(String username, String email, String employeeId, String password, String confirmPassword) {
+        boolean esValido = true;
+
+        if (username.trim().isEmpty()) {
+            usernameError.setValue("Campo obligatorio");
+            esValido = false;
+        } else {
+            usernameError.setValue(null);
+        }
+
+        if (email.isEmpty()) {
+            emailError.setValue("Campo obligatorio");
+            esValido = false;
+        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            emailError.setValue("Email no válido");
+            esValido = false;
+        } else {
+            emailError.setValue(null);
+        }
+
+        if (employeeId.trim().isEmpty()) {
+            employeeIdError.setValue("Campo obligatorio");
+            esValido = false;
+        } else {
+            employeeIdError.setValue(null);
+        }
+
+        if (!esPasswordValida(password)) {
+            passwordError.setValue("Mín. 8 caracteres, mayúscula, minúscula y número");
+            esValido = false;
+        } else {
+            passwordError.setValue(null);
+        }
+
+        if (!password.equals(confirmPassword)) {
+            confirmPasswordError.setValue("Las contraseñas no coinciden");
+            esValido = false;
+        } else {
+            confirmPasswordError.setValue(null);
+        }
+
+        return esValido;
+    }
+
+    private boolean esPasswordValida(String password) {
+        return password.length() >= 8 &&
+                password.matches(".*[A-Z].*") &&
+                password.matches(".*[a-z].*") &&
+                password.matches(".*\\d.*");
+    }
+
+    public void registrarUsuario(String username, String email, String employeeId, String phone, String password) {
+        isLoading.setValue(true);
+
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        String uid = mAuth.getCurrentUser().getUid();
+                        Map<String, Object> userMap = new HashMap<>();
+                        userMap.put("username", username);
+                        userMap.put("email", email);
+                        userMap.put("employeeId", employeeId);
+                        userMap.put("phone", phone != null ? phone : "");
+
+                        FirebaseFirestore.getInstance()
+                                .collection("users")
+                                .document(uid)
+                                .set(userMap)
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.i("REGISTER", "Usuario y datos guardados correctamente");
+                                    isLoading.setValue(false);
+                                    registrationSuccess.setValue(true);
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("REGISTER", "Error al guardar datos: " + e.getMessage());
+                                    isLoading.setValue(false);
+                                    errorMessage.setValue("Error al guardar datos de usuario");
+                                });
+                    } else {
+                        String error = obtenerMensajeError(task.getException());
+                        Log.e("REGISTER", "Error en el registro: " + error);
+                        isLoading.setValue(false);
+                        errorMessage.setValue(error);
+                    }
+                });
+    }
+
+    private String obtenerMensajeError(Exception e) {
+        if (e != null && e.getMessage() != null) {
+            if (e.getMessage().contains("email address is already in use")) {
+                return "El correo ya está registrado";
+            }
+            if (e.getMessage().contains("The email address is badly formatted")) {
+                return "El formato del correo es incorrecto";
+            }
+        }
+        return "Error en el registro: " + (e != null ? e.getMessage() : "");
+    }
 }

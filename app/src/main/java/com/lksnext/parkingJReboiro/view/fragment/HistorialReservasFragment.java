@@ -11,26 +11,17 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.lksnext.parkingJReboiro.R;
 import com.lksnext.parkingJReboiro.adapter.ReservaHistorialAdapter;
-import com.lksnext.parkingJReboiro.data.ReservationManager;
-import com.lksnext.parkingJReboiro.domain.Reserva;
+import com.lksnext.parkingJReboiro.viewmodel.ReservasViewModel;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Locale;
 
 public class HistorialReservasFragment extends Fragment {
 
@@ -38,7 +29,7 @@ public class HistorialReservasFragment extends Fragment {
     private ProgressBar progressBar;
     private TextView tvNoReservas;
     private ReservaHistorialAdapter adapter;
-    private List<Reserva> reservasPasadas = new ArrayList<>();
+    private ReservasViewModel viewModel;
 
     @Nullable
     @Override
@@ -50,6 +41,9 @@ public class HistorialReservasFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Inicializar ViewModel usando ViewModelProvider con scope de Activity
+        viewModel = new ViewModelProvider(requireActivity()).get(ReservasViewModel.class);
+
         // Inicializar vistas
         rvHistorialReservas = view.findViewById(R.id.rvHistorialReservas);
         progressBar = view.findViewById(R.id.progressBar);
@@ -57,7 +51,7 @@ public class HistorialReservasFragment extends Fragment {
 
         // Configurar RecyclerView
         rvHistorialReservas.setLayoutManager(new LinearLayoutManager(requireContext()));
-        adapter = new ReservaHistorialAdapter(reservasPasadas);
+        adapter = new ReservaHistorialAdapter(new ArrayList<>());
         rvHistorialReservas.setAdapter(adapter);
 
         // Configurar botón volver
@@ -66,62 +60,37 @@ public class HistorialReservasFragment extends Fragment {
             Navigation.findNavController(requireView()).navigateUp();
         });
 
-        // Cargar historial de reservas
-        cargarHistorialReservas();
+        // Observar ViewModel
+        observeViewModel();
     }
 
-    private void cargarHistorialReservas() {
-        progressBar.setVisibility(View.VISIBLE);
-        rvHistorialReservas.setVisibility(View.GONE);
-        tvNoReservas.setVisibility(View.GONE);
-
-        // Obtener usuario actual
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = auth.getCurrentUser();
-
-        if (currentUser == null) {
-            mostrarMensajeError("Debes iniciar sesión para ver tu historial");
-            return;
-        }
-
-        String userId = currentUser.getUid();
-
-        // Usar ReservationManager para obtener reservas
-        ReservationManager reservationManager = new ReservationManager();
-        reservationManager.getReservasDelUsuario(userId, new ReservationManager.ReservasCallback() {
-            @Override
-            public void onReservasObtenidas(List<Reserva> reservas) {
-                progressBar.setVisibility(View.GONE);
-
-                // Clasificar reservas y obtener solo las pasadas
-                Map<String, List<Reserva>> reservasClasificadas = reservationManager.clasificarReservas(reservas);
-                reservasPasadas.clear();
-                reservasPasadas.addAll(reservasClasificadas.get("pasadas"));
-
-                // Ordenar de más reciente a más antigua
-                Collections.sort(reservasPasadas, (r1, r2) -> {
-                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-                    try {
-                        Date fecha1 = sdf.parse(r1.getFecha());
-                        Date fecha2 = sdf.parse(r2.getFecha());
-                        return fecha2.compareTo(fecha1); // Orden descendente (más reciente primero)
-                    } catch (ParseException e) {
-                        return 0;
-                    }
-                });
-
-                if (reservasPasadas.isEmpty()) {
-                    tvNoReservas.setVisibility(View.VISIBLE);
-                } else {
-                    rvHistorialReservas.setVisibility(View.VISIBLE);
-                    adapter.notifyDataSetChanged();
-                }
+    private void observeViewModel() {
+        // Observar reservas pasadas
+        viewModel.getReservasPasadas().observe(getViewLifecycleOwner(), reservas -> {
+            if (reservas.isEmpty()) {
+                tvNoReservas.setVisibility(View.VISIBLE);
+                rvHistorialReservas.setVisibility(View.GONE);
+            } else {
+                tvNoReservas.setVisibility(View.GONE);
+                rvHistorialReservas.setVisibility(View.VISIBLE);
+                adapter = new ReservaHistorialAdapter(reservas);
+                rvHistorialReservas.setAdapter(adapter);
             }
+        });
 
-            @Override
-            public void onError(Exception e) {
-                progressBar.setVisibility(View.GONE);
-                mostrarMensajeError("Error al cargar el historial: " + e.getMessage());
+        // Observar estado de carga
+        viewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+            if (isLoading) {
+                rvHistorialReservas.setVisibility(View.GONE);
+                tvNoReservas.setVisibility(View.GONE);
+            }
+        });
+
+        // Observar mensajes de error
+        viewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
+            if (error != null && !error.isEmpty()) {
+                mostrarMensajeError(error);
             }
         });
     }
@@ -134,5 +103,4 @@ public class HistorialReservasFragment extends Fragment {
         tvNoReservas.setVisibility(View.VISIBLE);
         rvHistorialReservas.setVisibility(View.GONE);
     }
-
 }

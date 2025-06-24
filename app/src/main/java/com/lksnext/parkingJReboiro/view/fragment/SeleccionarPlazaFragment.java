@@ -10,30 +10,22 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.Navigation;
 import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.material.button.MaterialButton;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.lksnext.parkingJReboiro.R;
-import com.lksnext.parkingJReboiro.domain.Reserva;
 import com.lksnext.parkingJReboiro.view.ParkingMapView;
+import com.lksnext.parkingJReboiro.viewmodel.NuevaReservaViewModel;
 
-import java.util.HashSet;
 import java.util.Set;
 
 public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView.OnPlazaSelectedListener {
     private ParkingMapView parkingMapView;
-    private Set<Long> plazasOcupadas = new HashSet<>();
     private MaterialButton btnConfirmarPlaza;
-
-    private String fecha;
-    private int horaInicio, minutosInicio, duracion;
-    private long plazaSeleccionada; // Cambiado de Long a long
-    private String tipoPlaza = null;
-
     private TextView tvPlazaSeleccionada;
+    private NuevaReservaViewModel viewModel;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -44,40 +36,14 @@ public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        if (getArguments() != null) {
-            fecha = getArguments().getString("fecha");
-            horaInicio = getArguments().getInt("horaInicio");
-            minutosInicio = getArguments().getInt("minutosInicio", 0);
-            duracion = getArguments().getInt("duracion");
-        } else {
-            minutosInicio = 0;
-        }
-
-        // Mostrar fecha y hora seleccionada
-        TextView tvFecha = view.findViewById(R.id.tvFechaSeleccionada);
-        TextView tvHora = view.findViewById(R.id.tvHoraSeleccionada);
-        tvFecha.setText("Fecha: " + fecha);
-
-        // Calcula hora fin
-        int totalMinInicio = horaInicio * 60 + minutosInicio;
-        int totalMinFin = totalMinInicio + duracion * 60;
-        int horaFin = totalMinFin / 60;
-        int minFin = totalMinFin % 60;
-        String horaInicioStr = String.format("%02d:%02d", horaInicio, minutosInicio);
-        String horaFinStr = String.format("%02d:%02d", horaFin, minFin);
-        tvHora.setText("Hora: " + horaInicioStr + " - " + horaFinStr);
+        viewModel = new ViewModelProvider(requireActivity()).get(NuevaReservaViewModel.class);
 
         tvPlazaSeleccionada = view.findViewById(R.id.tvPlazaSeleccionada);
-        tvPlazaSeleccionada.setText("Selecciona una plaza");
-
-        // Inicializar ParkingMapView
         parkingMapView = view.findViewById(R.id.parkingMapView);
         parkingMapView.setOnPlazaSelectedListener(this);
 
         MaterialButton btnVolverAtras = view.findViewById(R.id.btnVolverAtras);
-        btnVolverAtras.setOnClickListener(v -> {
-            Navigation.findNavController(requireView()).navigateUp();
-        });
+        btnVolverAtras.setOnClickListener(v -> Navigation.findNavController(requireView()).navigateUp());
 
         MaterialButton btnCancelarReserva = view.findViewById(R.id.btnCancelarReserva);
         btnCancelarReserva.setOnClickListener(v -> {
@@ -85,7 +51,6 @@ public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView
                     .setTitle("Cancelar reserva")
                     .setMessage("¿Estás seguro de que quieres cancelar el proceso de reserva?")
                     .setPositiveButton("Sí", (dialog, which) -> {
-                        // Navegar a la pantalla principal (reemplaza R.id.action_to_home con tu acción correcta)
                         Navigation.findNavController(requireView()).navigate(
                                 R.id.action_seleccionarPlazaFragment_to_mainFragment);
                     })
@@ -93,10 +58,10 @@ public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView
                     .show();
         });
 
-        // Configurar botón confirmar
         btnConfirmarPlaza = view.findViewById(R.id.btnConfirmarPlaza);
         btnConfirmarPlaza.setEnabled(false);
         btnConfirmarPlaza.setOnClickListener(v -> {
+            String tipoPlaza = viewModel.getTipoPlaza().getValue();
             if ("minusvalido".equals(tipoPlaza) || "electrico".equals(tipoPlaza)) {
                 String mensaje = "";
                 if ("minusvalido".equals(tipoPlaza)) {
@@ -104,96 +69,49 @@ public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView
                 } else if ("electrico".equals(tipoPlaza)) {
                     mensaje = "Has seleccionado una plaza con punto de carga para vehículos eléctricos. Solo debe utilizarse mientras el vehículo esté en proceso de carga.";
                 }
-
-                // Crear y mostrar alerta
                 new AlertDialog.Builder(requireContext())
                         .setTitle("Advertencia")
                         .setMessage(mensaje)
                         .setPositiveButton("Continuar", (dialog, which) -> {
-                            // Continuar con la navegación
-                            Bundle args = new Bundle();
-                            args.putString("fecha", fecha);
-                            args.putInt("horaInicio", horaInicio);
-                            args.putInt("minutosInicio", minutosInicio);
-                            args.putInt("duracion", duracion);
-                            args.putLong("plazaId", plazaSeleccionada);
-                            args.putString("tipoPlaza", tipoPlaza);
                             Navigation.findNavController(requireView()).navigate(
-                                    R.id.action_seleccionarPlazaFragment_to_confirmarDetallesFragment, args);
+                                    R.id.action_seleccionarPlazaFragment_to_confirmarDetallesFragment);
                         })
                         .setNegativeButton("Cancelar", null)
                         .show();
             } else {
-                // Si es una plaza normal, continuar directamente
-                Bundle args = new Bundle();
-                args.putString("fecha", fecha);
-                args.putInt("horaInicio", horaInicio);
-                args.putInt("minutosInicio", minutosInicio);
-                args.putInt("duracion", duracion);
-                args.putLong("plazaId", plazaSeleccionada);
-                args.putString("tipoPlaza", tipoPlaza);
                 Navigation.findNavController(requireView()).navigate(
-                        R.id.action_seleccionarPlazaFragment_to_confirmarDetallesFragment, args);
+                        R.id.action_seleccionarPlazaFragment_to_confirmarDetallesFragment);
             }
         });
-        // Cargar plazas ocupadas
-        cargarReservasYActualizar();
-    }
 
-    private void cargarReservasYActualizar() {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("reservas")
-                .whereEqualTo("fecha", fecha)
-                .get()
-                .addOnSuccessListener(reservasSnap -> {
-                    plazasOcupadas.clear();
+        // Observa plazas ocupadas y errores
+        viewModel.getPlazasOcupadas().observe(getViewLifecycleOwner(), plazasOcupadas -> {
+            if (parkingMapView != null && plazasOcupadas != null) {
+                parkingMapView.setPlazasOcupadas(plazasOcupadas);
+            }
+        });
+        viewModel.getMensajeError().observe(getViewLifecycleOwner(), msg -> {
+            if (msg != null) Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+        });
 
-                    // Calcula inicio y fin en milisegundos desde medianoche
-                    long miInicio = (horaInicio * 60L + minutosInicio) * 60_000L;
-                    long miFin = miInicio + duracion * 60 * 60_000L; // duracion en horas
+        // Cargar plazas ocupadas desde el ViewModel
+        viewModel.cargarPlazasOcupadas();
 
-                    for (QueryDocumentSnapshot doc : reservasSnap) {
-                        Reserva reserva = doc.toObject(Reserva.class);
-                        long reservaInicio = reserva.getHoraInicio().getHoraInicio();
-                        long reservaFin = reserva.getHoraInicio().getHoraFin();
-
-                        // Solapan si: miInicio < reservaFin && reservaInicio < miFin
-                        if (miInicio < reservaFin && reservaInicio < miFin) {
-                            plazasOcupadas.add(reserva.getPlazaId().getId());
-                        }
-                    }
-
-                    // Actualizar el mapa con las plazas ocupadas
-                    if (parkingMapView != null) {
-                        parkingMapView.setPlazasOcupadas(plazasOcupadas);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Error al cargar reservas", Toast.LENGTH_SHORT).show();
-                });
+        // Mostrar info de fecha/hora
+        TextView tvFecha = view.findViewById(R.id.tvFechaSeleccionada);
+        TextView tvHora = view.findViewById(R.id.tvHoraSeleccionada);
+        tvFecha.setText("Fecha: " + viewModel.getFecha().getValue());
+        NuevaReservaViewModel.HorarioCalculado horario = viewModel.calcularHorario();
+        if (horario != null) {
+            tvHora.setText("Hora: " + horario.getHoraInicioFormateada() + " - " + horario.getHoraFinFormateada());
+        }
     }
 
     @Override
     public void onPlazaSelected(long plazaId, String tipo) {
-        // Se ejecuta cuando el usuario selecciona una plaza en el mapa
-        plazaSeleccionada = plazaId;
-        tipoPlaza = tipo;
+        viewModel.seleccionarPlaza(plazaId, tipo);
         btnConfirmarPlaza.setEnabled(true);
-
-        String tipoTexto = getTipoPlazaTexto(tipo);
+        String tipoTexto = viewModel.getTipoPlazaTexto(tipo);
         tvPlazaSeleccionada.setText("Plaza seleccionada: " + plazaId + " (" + tipoTexto + ")");
-
-    }
-
-    private String getTipoPlazaTexto(String tipo) {
-        switch (tipo) {
-            case "minusvalido":
-                return "Minusválidos";
-            case "electrico":
-                return "Vehículo eléctrico";
-            case "normal":
-            default:
-                return "Estándar";
-        }
     }
 }
