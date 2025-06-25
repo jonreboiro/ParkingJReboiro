@@ -16,6 +16,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class NuevaReservaViewModel extends ViewModel {
+    private Integer selectedYear, selectedMonth, selectedDay;
+
     // LiveData para datos de reserva
     private final MutableLiveData<String> fecha = new MutableLiveData<>();
     private final MutableLiveData<Integer> horaInicio = new MutableLiveData<>();
@@ -34,6 +36,9 @@ public class NuevaReservaViewModel extends ViewModel {
     private final MutableLiveData<Boolean> cargando = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> reservaExitosa = new MutableLiveData<>(false);
 
+    public Integer getSelectedYear() { return selectedYear; }
+    public Integer getSelectedMonth() { return selectedMonth; }
+    public Integer getSelectedDay() { return selectedDay; }
     // Getters para LiveData
     public LiveData<String> getFecha() { return fecha; }
     public LiveData<Integer> getHoraInicio() { return horaInicio; }
@@ -59,8 +64,9 @@ public class NuevaReservaViewModel extends ViewModel {
     /**
      * Valida la selección de fecha y hora
      */
-    public boolean validarSeleccion(int selectedYear, int selectedMonth, int selectedDay) {
-        if (fecha.getValue() == null || horaInicio.getValue() == null) {
+    public boolean validarSeleccion() {
+        if (selectedYear == null || selectedMonth == null || selectedDay == null ||
+                horaInicio.getValue() == null) {
             mensajeError.setValue("Selecciona fecha y hora");
             return false;
         }
@@ -289,6 +295,12 @@ public class NuevaReservaViewModel extends ViewModel {
 
     public void limpiarMensajeError() {
         mensajeError.setValue(null);
+    }
+
+    public void setSelectedDate(int year, int month, int day) {
+        this.selectedYear = year;
+        this.selectedMonth = month;
+        this.selectedDay = day;
     }
 
 }
