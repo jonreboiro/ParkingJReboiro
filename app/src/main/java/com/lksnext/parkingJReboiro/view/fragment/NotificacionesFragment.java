@@ -96,6 +96,7 @@ public class NotificacionesFragment extends Fragment {
     private void eliminarTodasLasNotificaciones() {
         notificaciones.clear();
         guardarEstadoLeidas();
+        NotificacionesStorage.guardarLista(requireContext(), notificaciones);
         adapter.notifyDataSetChanged();
         actualizarVistaVacia();
     }
