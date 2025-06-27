@@ -1,5 +1,6 @@
 package com.lksnext.parkingJReboiro.viewmodel;
 
+import android.content.Context;
 import android.os.CountDownTimer;
 
 import androidx.lifecycle.LiveData;
@@ -10,6 +11,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.lksnext.parkingJReboiro.data.ReservationManager;
 import com.lksnext.parkingJReboiro.domain.Reserva;
+import com.lksnext.parkingJReboiro.notifications.NotificationScheduler;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -131,7 +133,7 @@ public class ReservasViewModel extends ViewModel {
         });
     }
 
-    public void cancelarReserva(Reserva reserva, int position) {
+    public void cancelarReserva(Reserva reserva, int position, Context context) {
         isLoading.setValue(true);
         reservationManager.cancelarReserva(
                 reserva.getId(),
@@ -142,6 +144,13 @@ public class ReservasViewModel extends ViewModel {
                         listaActual.remove(position);
                         reservasProximas.setValue(listaActual);
                     }
+                    NotificationScheduler.showInstantNotification(
+                            // Usa el contexto adecuado, por ejemplo, si tienes acceso a Application:
+                            context,
+                            101, // ID único para cancelación
+                            "Reserva cancelada",
+                            "Tu reserva ha sido cancelada correctamente."
+                    );
                     operacionExitosa.setValue(true);
                     isLoading.setValue(false);
                 },

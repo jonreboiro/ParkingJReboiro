@@ -1,5 +1,7 @@
 package com.lksnext.parkingJReboiro.view.fragment;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,13 +18,18 @@ import com.lksnext.parkingJReboiro.domain.Notificacion;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class NotificacionesFragment extends Fragment {
 
     private FragmentNotificacionesBinding binding;
     private NotificacionesAdapter adapter;
     private List<Notificacion> notificaciones;
+    private SharedPreferences prefs;
+    private static final String PREFS_NAME = "notificaciones_prefs";
+    private static final String KEY_LEIDAS = "notificaciones_leidas";
 
     @Nullable
     @Override
@@ -35,20 +42,59 @@ public class NotificacionesFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Inicializar la lista y adaptador
-        notificaciones = obtenerNotificacionesDePrueba(); // Reemplazar con datos reales
-        adapter = new NotificacionesAdapter(notificaciones);
+        prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-        // Configurar RecyclerView
+        notificaciones = obtenerNotificacionesDePrueba();
+        cargarEstadoLeidas();
+
+        adapter = new NotificacionesAdapter(notificaciones, new NotificacionesAdapter.OnNotificacionClickListener() {
+            @Override
+            public void onNotificacionClick(int position) {
+                marcarComoLeida(position);
+            }
+
+            @Override
+            public void onEliminarClick(int position) {
+                eliminarNotificacion(position);
+            }
+        });
+
         binding.rvNotificaciones.setLayoutManager(new LinearLayoutManager(requireContext()));
         binding.rvNotificaciones.setAdapter(adapter);
 
-        // Mostrar texto de "sin notificaciones" si la lista está vacía
-        actualizarVistaVacia();
-
-        // Configurar botones
         binding.btnMarcarLeidas.setOnClickListener(v -> marcarTodasComoLeidas());
         binding.btnEliminarTodas.setOnClickListener(v -> eliminarTodasLasNotificaciones());
+
+        actualizarVistaVacia();
+    }
+
+    private void marcarComoLeida(int position) {
+        Notificacion n = notificaciones.get(position);
+        if (!n.isLeida()) {
+            n.setLeida(true);
+            guardarEstadoLeidas();
+            adapter.notifyItemChanged(position);
+        }
+    }
+
+    private void eliminarNotificacion(int position) {
+        notificaciones.remove(position);
+        guardarEstadoLeidas();
+        adapter.notifyItemRemoved(position);
+        actualizarVistaVacia();
+    }
+
+    private void marcarTodasComoLeidas() {
+        for (Notificacion n : notificaciones) n.setLeida(true);
+        guardarEstadoLeidas();
+        adapter.notifyDataSetChanged();
+    }
+
+    private void eliminarTodasLasNotificaciones() {
+        notificaciones.clear();
+        guardarEstadoLeidas();
+        adapter.notifyDataSetChanged();
+        actualizarVistaVacia();
     }
 
     private void actualizarVistaVacia() {
@@ -65,20 +111,22 @@ public class NotificacionesFragment extends Fragment {
         }
     }
 
-    private void marcarTodasComoLeidas() {
-        for (Notificacion notificacion : notificaciones) {
-            notificacion.setLeida(true);
+    private void guardarEstadoLeidas() {
+        Set<String> leidas = new HashSet<>();
+        for (Notificacion n : notificaciones) {
+            if (n.isLeida()) leidas.add(String.valueOf(n.getId()));
         }
-        adapter.notifyDataSetChanged();
+        prefs.edit().putStringSet(KEY_LEIDAS, leidas).apply();
     }
 
-    private void eliminarTodasLasNotificaciones() {
-        notificaciones.clear();
-        adapter.notifyDataSetChanged();
-        actualizarVistaVacia();
+    private void cargarEstadoLeidas() {
+        Set<String> leidas = prefs.getStringSet(KEY_LEIDAS, new HashSet<>());
+        for (Notificacion n : notificaciones) {
+            n.setLeida(leidas.contains(String.valueOf(n.getId())));
+        }
     }
 
-    // Método temporal para datos de prueba
+    // Simulación de datos
     private List<Notificacion> obtenerNotificacionesDePrueba() {
         List<Notificacion> lista = new ArrayList<>();
         lista.add(new Notificacion(1, "Reserva confirmada", "Tu reserva para hoy ha sido confirmada", new Date(), false));

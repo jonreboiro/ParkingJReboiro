@@ -126,7 +126,7 @@ public class ConsultarReservasFragment extends Fragment {
                 .setTitle("Cancelar Reserva")
                 .setMessage("¿Está seguro que desea cancelar esta reserva?")
                 .setPositiveButton("Sí", (dialog, which) -> {
-                    viewModel.cancelarReserva(reserva, position);
+                    viewModel.cancelarReserva(reserva, position, requireContext());
                 })
                 .setNegativeButton("No", null)
                 .show();

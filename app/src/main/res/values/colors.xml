@@ -10,4 +10,5 @@
     <color name="green">#008000</color>
     <color name="orange">#FF7F50</color>
     <color name="orangeDark">#B13102</color>
+    <color name="gray">#888888</color>
 </resources>

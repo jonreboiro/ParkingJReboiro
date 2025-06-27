@@ -1,5 +1,7 @@
 package com.lksnext.parkingJReboiro.viewmodel;
 
+import android.content.Context;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -10,6 +12,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.lksnext.parkingJReboiro.domain.Hora;
 import com.lksnext.parkingJReboiro.domain.Plaza;
 import com.lksnext.parkingJReboiro.domain.Reserva;
+import com.lksnext.parkingJReboiro.notifications.NotificationScheduler;
 
 import java.util.Calendar;
 import java.util.HashSet;
@@ -130,7 +133,7 @@ public class NuevaReservaViewModel extends ViewModel {
     /**
      * Verifica y guarda una nueva reserva
      */
-    public void verificarYGuardarReserva() {
+    public void verificarYGuardarReserva(Context context) {
         if (fecha.getValue() == null || horaInicio.getValue() == null ||
                 plazaId.getValue() == null) {
             mensajeError.setValue("Faltan datos para realizar la reserva");
@@ -166,7 +169,7 @@ public class NuevaReservaViewModel extends ViewModel {
                         mensajeError.setValue("La plaza ya ha sido reservada");
                         cargando.setValue(false);
                     } else {
-                        guardarReserva(inicioMs, finMs);
+                        guardarReserva(inicioMs, finMs, context);
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -178,11 +181,18 @@ public class NuevaReservaViewModel extends ViewModel {
     /**
      * Guarda una nueva reserva en Firestore
      */
-    private void guardarReserva(long inicioMs, long finMs) {
+    private void guardarReserva(long inicioMs, long finMs, Context context) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         Hora hora = new Hora(inicioMs, finMs);
         Plaza plaza = new Plaza(plazaId.getValue(), tipoPlaza.getValue());
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(selectedYear, selectedMonth, selectedDay, horaInicio.getValue(), minutosInicio.getValue(), 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        long NotificationInicioMs = calendar.getTimeInMillis();
+
+        long NotificationFinMs = NotificationInicioMs + duracion.getValue() * 60 * 60_000L;
 
         Reserva reserva = new Reserva();
         reserva.setUserId(userId);
@@ -193,6 +203,17 @@ public class NuevaReservaViewModel extends ViewModel {
         FirebaseFirestore.getInstance().collection("reservas")
                 .add(reserva)
                 .addOnSuccessListener(documentReference -> {
+                    NotificationScheduler.scheduleNotification(context, NotificationInicioMs - 5 * 60_000, 1, "Tu reserva está por empezar", "Faltan 5 minutos para tu reserva.");
+                    NotificationScheduler.scheduleNotification(context, NotificationInicioMs, 2, "¡Reserva iniciada!", "Tu reserva ha comenzado.");
+                    NotificationScheduler.scheduleNotification(context, NotificationFinMs - 5 * 60_000, 3, "Tu reserva está por terminar", "Faltan 5 minutos para que termine tu reserva.");
+                    NotificationScheduler.scheduleNotification(context, NotificationFinMs, 4, "Reserva finalizada", "Tu reserva ha finalizado.");
+                    NotificationScheduler.showInstantNotification(
+                            context,
+                            100,
+                            "Reserva confirmada",
+                            "Tu reserva ha sido realizada con éxito."
+                    );
+
                     reservaExitosa.setValue(true);
                     cargando.setValue(false);
                 })
