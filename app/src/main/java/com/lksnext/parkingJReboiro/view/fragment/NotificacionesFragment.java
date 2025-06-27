@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.lksnext.parkingJReboiro.adapter.NotificacionesAdapter;
 import com.lksnext.parkingJReboiro.databinding.FragmentNotificacionesBinding;
 import com.lksnext.parkingJReboiro.domain.Notificacion;
+import com.lksnext.parkingJReboiro.notifications.NotificacionesStorage;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,9 +43,10 @@ public class NotificacionesFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+
         prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-        notificaciones = obtenerNotificacionesDePrueba();
+        notificaciones = NotificacionesStorage.cargarNotificaciones(requireContext());
         cargarEstadoLeidas();
 
         adapter = new NotificacionesAdapter(notificaciones, new NotificacionesAdapter.OnNotificacionClickListener() {
@@ -80,6 +82,7 @@ public class NotificacionesFragment extends Fragment {
     private void eliminarNotificacion(int position) {
         notificaciones.remove(position);
         guardarEstadoLeidas();
+        NotificacionesStorage.guardarLista(requireContext(), notificaciones);
         adapter.notifyItemRemoved(position);
         actualizarVistaVacia();
     }
@@ -124,13 +127,5 @@ public class NotificacionesFragment extends Fragment {
         for (Notificacion n : notificaciones) {
             n.setLeida(leidas.contains(String.valueOf(n.getId())));
         }
-    }
-
-    // Simulación de datos
-    private List<Notificacion> obtenerNotificacionesDePrueba() {
-        List<Notificacion> lista = new ArrayList<>();
-        lista.add(new Notificacion(1, "Reserva confirmada", "Tu reserva para hoy ha sido confirmada", new Date(), false));
-        lista.add(new Notificacion(2, "Recordatorio", "Tu reserva comienza en 30 minutos", new Date(), false));
-        return lista;
     }
 }

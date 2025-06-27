@@ -1,5 +1,6 @@
 package com.lksnext.parkingJReboiro.notifications;
 
+
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
@@ -7,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import androidx.core.app.NotificationCompat;
 import com.lksnext.parkingJReboiro.R;
+import com.lksnext.parkingJReboiro.domain.Notificacion;
 
 public class ReservaNotificationReceiver extends BroadcastReceiver {
     @Override
@@ -30,5 +32,8 @@ public class ReservaNotificationReceiver extends BroadcastReceiver {
                 .setAutoCancel(true);
 
         manager.notify(notificationId, builder.build());
+        NotificacionesStorage.guardarNotificacion(context, new Notificacion(
+                notificationId, titulo, mensaje, new java.util.Date(), false
+        ));
     }
 }
