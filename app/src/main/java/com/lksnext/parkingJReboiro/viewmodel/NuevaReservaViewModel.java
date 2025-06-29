@@ -1,6 +1,7 @@
 package com.lksnext.parkingJReboiro.viewmodel;
 
 import android.content.Context;
+import android.os.CountDownTimer;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -14,12 +15,21 @@ import com.lksnext.parkingJReboiro.domain.Plaza;
 import com.lksnext.parkingJReboiro.domain.Reserva;
 import com.lksnext.parkingJReboiro.notifications.NotificationScheduler;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 public class NuevaReservaViewModel extends ViewModel {
     private Integer selectedYear, selectedMonth, selectedDay;
+
+    private final MutableLiveData<String> tiempoRestante = new MutableLiveData<>("En curso");
+    private CountDownTimer countDownTimer;
+    private boolean timerRunning = false;
 
     // LiveData para datos de reserva
     private final MutableLiveData<String> fecha = new MutableLiveData<>();
@@ -62,6 +72,40 @@ public class NuevaReservaViewModel extends ViewModel {
     public void seleccionarPlaza(long id, String tipo) {
         this.plazaId.setValue(id);
         this.tipoPlaza.setValue(tipo);
+    }
+
+    public LiveData<String> getTiempoRestante() {
+        return tiempoRestante;
+    }
+
+    private void iniciarTemporizador(long tiempoRestanteMs) {
+        detenerTemporizador();
+
+        countDownTimer = new CountDownTimer(tiempoRestanteMs, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                long horas = TimeUnit.MILLISECONDS.toHours(millisUntilFinished);
+                long minutos = TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished) % 60;
+                String tiempo = String.format("En curso - Tiempo restante: %02d:%02d", horas, minutos);
+                tiempoRestante.setValue(tiempo);
+            }
+
+            @Override
+            public void onFinish() {
+                tiempoRestante.setValue("Finalizada");
+                timerRunning = false;
+            }
+        };
+
+        countDownTimer.start();
+        timerRunning = true;
+    }
+
+    public void detenerTemporizador() {
+        if (countDownTimer != null && timerRunning) {
+            countDownTimer.cancel();
+            timerRunning = false;
+        }
     }
 
     /**
@@ -203,17 +247,16 @@ public class NuevaReservaViewModel extends ViewModel {
         FirebaseFirestore.getInstance().collection("reservas")
                 .add(reserva)
                 .addOnSuccessListener(documentReference -> {
+                    reserva.setId(documentReference.getId());
                     NotificationScheduler.scheduleNotification(context, NotificationInicioMs - 5 * 60_000, 1, "Tu reserva está por empezar", "Faltan 5 minutos para tu reserva.");
                     NotificationScheduler.scheduleNotification(context, NotificationInicioMs, 2, "¡Reserva iniciada!", "Tu reserva ha comenzado.");
-                    NotificationScheduler.scheduleNotification(context, NotificationFinMs - 5 * 60_000, 3, "Tu reserva está por terminar", "Faltan 5 minutos para que termine tu reserva.");
-                    NotificationScheduler.scheduleNotification(context, NotificationFinMs, 4, "Reserva finalizada", "Tu reserva ha finalizado.");
                     NotificationScheduler.showInstantNotification(
                             context,
                             100,
                             "Reserva confirmada",
                             "Tu reserva ha sido realizada con éxito."
                     );
-
+                    this.calcularTiempoRestante(reserva, context);
                     reservaExitosa.setValue(true);
                     cargando.setValue(false);
                 })
@@ -221,6 +264,58 @@ public class NuevaReservaViewModel extends ViewModel {
                     mensajeError.setValue("Error al guardar la reserva");
                     cargando.setValue(false);
                 });
+    }
+
+    private void calcularTiempoRestante(Reserva reserva, Context context) {
+        try {
+            SimpleDateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            Date fechaReserva = formatoFecha.parse(reserva.getFecha());
+
+            Calendar calFin = Calendar.getInstance();
+            calFin.setTime(fechaReserva);
+
+            long horaFinMs = reserva.getHoraInicio().getHoraFin();
+            int horaFinInt = (int)(horaFinMs / (60 * 60 * 1000));
+            int minFinInt = (int)((horaFinMs % (60 * 60 * 1000)) / (60 * 1000));
+
+            calFin.set(Calendar.HOUR_OF_DAY, horaFinInt);
+            calFin.set(Calendar.MINUTE, minFinInt);
+            calFin.set(Calendar.SECOND, 0);
+            calFin.set(Calendar.MILLISECOND, 0);
+
+            long tiempoFinReal = calFin.getTimeInMillis();
+            long tiempoActualMs = System.currentTimeMillis();
+            long tiempoRestanteMs = tiempoFinReal - tiempoActualMs;
+
+            long cincoMinAntes = tiempoFinReal - (5 * 60 * 1000);
+            if (cincoMinAntes > tiempoActualMs) {
+                NotificationScheduler.scheduleNotification(
+                        context,
+                        cincoMinAntes,
+                        reserva.getId().hashCode() * 10 + 1,
+                        "Reserva por finalizar",
+                        "Tu reserva termina en 5 minutos."
+                );
+            }
+
+            if (tiempoFinReal > tiempoActualMs) {
+                NotificationScheduler.scheduleNotification(
+                        context,
+                        tiempoFinReal,
+                        reserva.getId().hashCode() * 10 + 1,
+                        "Reserva finalizada",
+                        "Tu reserva ha finalizado."
+                );
+            }
+
+            if (tiempoRestanteMs > 0) {
+                iniciarTemporizador(tiempoRestanteMs);
+            } else {
+                tiempoRestante.setValue("Finalizada");
+            }
+        } catch (ParseException e) {
+            tiempoRestante.setValue("En curso");
+        }
     }
 
     /**

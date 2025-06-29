@@ -12,6 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.lksnext.parkingJReboiro.adapter.NotificacionesAdapter;
 import com.lksnext.parkingJReboiro.databinding.FragmentNotificacionesBinding;
 import com.lksnext.parkingJReboiro.domain.Notificacion;
@@ -43,10 +44,10 @@ public class NotificacionesFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
 
-        notificaciones = NotificacionesStorage.cargarNotificaciones(requireContext());
+        notificaciones = NotificacionesStorage.cargarNotificaciones(requireContext(), userId);
         cargarEstadoLeidas();
 
         adapter = new NotificacionesAdapter(notificaciones, new NotificacionesAdapter.OnNotificacionClickListener() {
@@ -82,7 +83,8 @@ public class NotificacionesFragment extends Fragment {
     private void eliminarNotificacion(int position) {
         notificaciones.remove(position);
         guardarEstadoLeidas();
-        NotificacionesStorage.guardarLista(requireContext(), notificaciones);
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        NotificacionesStorage.guardarLista(requireContext(), notificaciones, userId);
         adapter.notifyItemRemoved(position);
         actualizarVistaVacia();
     }
@@ -96,7 +98,8 @@ public class NotificacionesFragment extends Fragment {
     private void eliminarTodasLasNotificaciones() {
         notificaciones.clear();
         guardarEstadoLeidas();
-        NotificacionesStorage.guardarLista(requireContext(), notificaciones);
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        NotificacionesStorage.guardarLista(requireContext(), notificaciones, userId);
         adapter.notifyDataSetChanged();
         actualizarVistaVacia();
     }

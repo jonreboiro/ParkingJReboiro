@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.util.Log;
 import com.lksnext.parkingJReboiro.domain.Notificacion;
+import com.google.firebase.auth.FirebaseAuth;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
@@ -52,9 +53,10 @@ public class NotificationScheduler {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
                     context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
                 notificationManager.notify(notificationId, builder.build());
+                String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
                 NotificacionesStorage.guardarNotificacion(context, new Notificacion(
                         notificationId, title, message, new java.util.Date(), false
-                ));
+                ), userId);
             }
         } catch (SecurityException e) {
             Log.e("NotificationScheduler", "No se pudo mostrar la notificación: permiso denegado", e);
