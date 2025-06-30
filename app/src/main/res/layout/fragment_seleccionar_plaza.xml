@@ -56,6 +56,29 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:padding="8dp"
+            app:layout_constraintTop_toBottomOf="@id/cvInformacionReserva"
+            app:layout_constraintBottom_toTopOf="@id/parkingMapView">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Planta:" />
+
+            <Spinner
+                android:id="@+id/spinnerPlanta"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:entries="@array/plantas_array"
+                android:layout_marginStart="8dp"/>
+        </LinearLayout>
+
         <!-- Mapa SVG con altura controlada -->
         <com.lksnext.parkingJReboiro.view.ParkingMapView
             android:id="@+id/parkingMapView"

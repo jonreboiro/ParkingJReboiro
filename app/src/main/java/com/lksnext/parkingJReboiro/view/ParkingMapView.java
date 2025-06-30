@@ -85,7 +85,7 @@ public class ParkingMapView extends View {
             is.close();
 
             // Analizar el SVG para encontrar todos los elementos de plaza
-            analizarElementosPlazas();
+            analizarElementosPlazas(0);
 
             // Habilitar eventos de toque
             setClickable(true);
@@ -95,26 +95,39 @@ public class ParkingMapView extends View {
         }
     }
 
-    private void analizarElementosPlazas() {
-        // Implementar análisis para extraer los IDs y bounds de las plazas
-        // Buscar elementos con ID que comience con "plaza_"
+    private void analizarElementosPlazas(int planta) {
+        plazaBounds.clear();
+        if (planta == 0) {
+            plazaBounds.put("plaza_13_moto", new RectF(18, 11, 145, 40));
+            plazaBounds.put("plaza_14_moto", new RectF(19, 60, 146, 89));
+            plazaBounds.put("plaza_15_moto", new RectF(18, 105, 145, 134));
+            plazaBounds.put("plaza_16_moto", new RectF(18, 150, 145, 179));
+            plazaBounds.put("plaza_17_moto", new RectF(18, 195, 145, 224));
+            plazaBounds.put("plaza_18_normal", new RectF(19, 240, 146, 312));
+            plazaBounds.put("plaza_19_normal", new RectF(18, 332, 145, 404));
+            plazaBounds.put("plaza_20_normal", new RectF(18, 431, 145, 503));
+            plazaBounds.put("plaza_21_normal", new RectF(18, 530, 145, 602));
+            plazaBounds.put("plaza_22_minusvalido", new RectF(344, 24, 471, 96));
+            plazaBounds.put("plaza_23_normal", new RectF(344, 134, 471, 206));
+            plazaBounds.put("plaza_24_normal", new RectF(344, 233, 471, 305));
+            plazaBounds.put("plaza_25_normal", new RectF(344, 332, 471, 404));
+            plazaBounds.put("plaza_26_normal", new RectF(344, 431, 471, 503));
+            plazaBounds.put("plaza_27_normal", new RectF(344, 530, 471, 602));
+        } else {
+            plazaBounds.put("plaza_1_minusvalido", new RectF(18, 24, 145, 96));
+            plazaBounds.put("plaza_2_normal", new RectF(18, 134, 145, 206));
+            plazaBounds.put("plaza_3_normal", new RectF(18, 233, 145, 305));
+            plazaBounds.put("plaza_4_normal", new RectF(18, 332, 145, 404));
+            plazaBounds.put("plaza_5_normal", new RectF(18, 431, 145, 503));
+            plazaBounds.put("plaza_6_electrico", new RectF(18, 530, 145, 602));
+            plazaBounds.put("plaza_7_minusvalido", new RectF(344, 24, 471, 96));
+            plazaBounds.put("plaza_8_normal", new RectF(344, 134, 471, 206));
+            plazaBounds.put("plaza_9_normal", new RectF(344, 233, 471, 305));
+            plazaBounds.put("plaza_10_normal", new RectF(344, 332, 471, 404));
+            plazaBounds.put("plaza_11_normal", new RectF(344, 431, 471, 503));
+            plazaBounds.put("plaza_12_electrico", new RectF(344, 530, 471, 602));
+        }
 
-        // Estos son ejemplos - en un caso real necesitarías recorrer todos los elementos del SVG
-        // y extraer sus bounds o usar paths para generar bounds
-
-        // Ejemplo de extracción de bounds para las plazas del SVG
-        plazaBounds.put("plaza_1_minusvalido", new RectF(18, 24, 145, 96));
-        plazaBounds.put("plaza_2_normal", new RectF(18, 134, 145, 206));
-        plazaBounds.put("plaza_3_normal", new RectF(18, 233, 145, 305));
-        plazaBounds.put("plaza_4_normal", new RectF(18, 332, 145, 404));
-        plazaBounds.put("plaza_5_normal", new RectF(18, 431, 145, 503));
-        plazaBounds.put("plaza_6_electrico", new RectF(18, 530, 145, 602));
-        plazaBounds.put("plaza_7_minusvalido", new RectF(344, 24, 471, 96));
-        plazaBounds.put("plaza_8_normal", new RectF(344, 134, 471, 206));
-        plazaBounds.put("plaza_9_normal", new RectF(344, 233, 471, 305));
-        plazaBounds.put("plaza_10_normal", new RectF(344, 332, 471, 404));
-        plazaBounds.put("plaza_11_normal", new RectF(344, 431, 471, 503));
-        plazaBounds.put("plaza_12_electrico", new RectF(344, 530, 471, 602));
 
         Log.d(TAG, "Plazas cargadas: " + plazaBounds.size());
     }
@@ -285,4 +298,18 @@ public class ParkingMapView extends View {
 
         invalidate();
     }
+
+    public void setPlanta(int planta) {
+        String svgFile = (planta == 0) ? "parking_zero.svg" : "parking.svg";
+        try {
+            InputStream is = getContext().getAssets().open(svgFile);
+            svgParking = SVG.getFromInputStream(is);
+            is.close();
+            analizarElementosPlazas(planta);
+            invalidate();
+        } catch (IOException | SVGParseException e) {
+            Log.e(TAG, "Error al cargar SVG", e);
+        }
+    }
+
 }

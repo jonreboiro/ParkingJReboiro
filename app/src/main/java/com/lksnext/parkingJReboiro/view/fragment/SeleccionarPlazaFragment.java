@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,6 +29,8 @@ public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView
     private TextView tvPlazaSeleccionada;
     private NuevaReservaViewModel viewModel;
 
+    private int plantaSeleccionada = 0;
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.fragment_seleccionar_plaza, container, false);
@@ -41,6 +45,18 @@ public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView
         tvPlazaSeleccionada = view.findViewById(R.id.tvPlazaSeleccionada);
         parkingMapView = view.findViewById(R.id.parkingMapView);
         parkingMapView.setOnPlazaSelectedListener(this);
+
+        Spinner spinnerPlanta = view.findViewById(R.id.spinnerPlanta);
+        spinnerPlanta.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
+                plantaSeleccionada = position;
+                parkingMapView.setPlanta(plantaSeleccionada);
+                viewModel.cargarPlazasOcupadas(plantaSeleccionada);
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
 
         MaterialButton btnVolverAtras = view.findViewById(R.id.btnVolverAtras);
         btnVolverAtras.setOnClickListener(v -> Navigation.findNavController(requireView()).navigateUp());
@@ -95,7 +111,7 @@ public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView
         });
 
         // Cargar plazas ocupadas desde el ViewModel
-        viewModel.cargarPlazasOcupadas();
+        viewModel.cargarPlazasOcupadas(0);
 
         // Mostrar info de fecha/hora
         TextView tvFecha = view.findViewById(R.id.tvFechaSeleccionada);

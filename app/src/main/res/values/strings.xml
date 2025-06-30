@@ -9,6 +9,10 @@
     <string name="fragment_end">End</string>
     <string name="buscar">Buscar plazas libres</string>
     <string name="eliminar">Eliminar</string>
+    <string-array name="plantas_array">
+        <item>Planta 0</item>
+        <item>Planta -1</item>
+    </string-array>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="default_web_client_id">964890008416-setgmce466db15ib4d8vuhv7sbe4ks8j.apps.googleusercontent.com.apps.googleusercontent.com</string>

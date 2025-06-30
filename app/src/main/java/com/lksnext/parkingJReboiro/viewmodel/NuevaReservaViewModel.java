@@ -139,7 +139,7 @@ public class NuevaReservaViewModel extends ViewModel {
     /**
      * Carga las plazas ocupadas para la fecha y horario seleccionados
      */
-    public void cargarPlazasOcupadas() {
+    public void cargarPlazasOcupadas(int planta) {
         if (fecha.getValue() == null || horaInicio.getValue() == null) {
             return;
         }
@@ -157,11 +157,19 @@ public class NuevaReservaViewModel extends ViewModel {
 
                     for (QueryDocumentSnapshot doc : reservasSnap) {
                         Reserva reserva = doc.toObject(Reserva.class);
-                        long reservaInicio = reserva.getHoraInicio().getHoraInicio();
-                        long reservaFin = reserva.getHoraInicio().getHoraFin();
+                        long plazaId = reserva.getPlazaId().getId();
 
-                        if (miInicio < reservaFin && reservaInicio < miFin) {
-                            plazasOcup.add(reserva.getPlazaId().getId());
+                        // Filtrar por planta
+                        boolean esDePlanta = (planta == 0 && plazaId >= 13 && plazaId <= 27)
+                                || (planta == -1 && plazaId >= 1 && plazaId <= 12);
+
+                        if (esDePlanta) {
+                            long reservaInicio = reserva.getHoraInicio().getHoraInicio();
+                            long reservaFin = reserva.getHoraInicio().getHoraFin();
+
+                            if (miInicio < reservaFin && reservaInicio < miFin) {
+                                plazasOcup.add(plazaId);
+                            }
                         }
                     }
 
@@ -348,20 +356,10 @@ public class NuevaReservaViewModel extends ViewModel {
             case "minusvalido": return "Minusválidos";
             case "electrico": return "Vehículo eléctrico";
             case "normal": default: return "Estándar";
+            case "moto": return "Moto";
         }
     }
 
-    /**
-     * Obtiene el tipo de plaza a partir de su ID
-     */
-    public String getTipoPorId(long id) {
-        switch ((int)id) {
-            case 1: return "A";
-            case 2: return "B";
-            case 3: return "C";
-            default: return "Estándar";
-        }
-    }
 
     /**
      * Reinicia todos los datos para una nueva reserva
