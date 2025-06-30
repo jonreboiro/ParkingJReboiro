@@ -1,6 +1,7 @@
 package com.lksnext.parkingJReboiro.viewmodel;
 
 import android.app.Application;
+import android.util.Log;
 import android.util.Patterns;
 
 import androidx.annotation.NonNull;
@@ -77,6 +78,9 @@ public class LoginViewModel extends AndroidViewModel {
                         isLoading.setValue(false);
                         if (task.isSuccessful()) {
                             isLogged.setValue(Boolean.TRUE);
+                            if (task.isSuccessful()) {
+                                isLogged.setValue(Boolean.TRUE);
+                            }
                         } else {
                             errorMessage.setValue(obtenerMensajeError(task.getException()));
                             isLogged.setValue(Boolean.FALSE);
@@ -92,6 +96,7 @@ public class LoginViewModel extends AndroidViewModel {
                 .addOnCompleteListener(task -> {
                     isLoading.setValue(false);
                     if (task.isSuccessful()) {
+                        Log.d("Login", "UID: " + FirebaseAuth.getInstance().getCurrentUser().getUid());
                         isLogged.setValue(Boolean.TRUE);
                     } else {
                         errorMessage.setValue("Error autenticando con Google");

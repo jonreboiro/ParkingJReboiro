@@ -302,7 +302,7 @@ public class NuevaReservaViewModel extends ViewModel {
                 NotificationScheduler.scheduleNotification(
                         context,
                         tiempoFinReal,
-                        reserva.getId().hashCode() * 10 + 1,
+                        reserva.getId().hashCode() * 10 + 2,
                         "Reserva finalizada",
                         "Tu reserva ha finalizado."
                 );
