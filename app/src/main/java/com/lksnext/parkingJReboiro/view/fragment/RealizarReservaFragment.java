@@ -25,7 +25,8 @@ import java.util.Calendar;
 public class RealizarReservaFragment extends Fragment {
     private EditText etFecha, etHoraInicio;
     private Slider sliderDuracion;
-    private int selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute;
+    private Integer selectedYear = null, selectedMonth = null, selectedDay = null, selectedHour = null, selectedMinute = null;
+
     private int duracionSeleccionada = 1;
     private NuevaReservaViewModel viewModel;
 
@@ -54,18 +55,27 @@ public class RealizarReservaFragment extends Fragment {
         // Observa errores del ViewModel
         viewModel.getMensajeError().observe(getViewLifecycleOwner(), msg -> {
             if (msg != null) Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
-            viewModel.limpiarMensajeError();
+            etFecha.postDelayed(() -> viewModel.limpiarMensajeError(), 100);
         });
 
         MaterialButton btnContinuar = view.findViewById(R.id.btnContinuar);
         btnContinuar.setOnClickListener(v -> {
+
+            if (selectedYear == null || selectedMonth == null || selectedDay == null) {
+                Toast.makeText(getContext(), "Selecciona una fecha", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            if (selectedHour == null || selectedMinute == null) {
+                Toast.makeText(getContext(), "Selecciona una hora", Toast.LENGTH_SHORT).show();
+                return;
+            }
             // Guarda los datos en el ViewModel
             viewModel.setFecha(etFecha.getText().toString());
             viewModel.setHoraInicio(selectedHour);
             viewModel.setMinutosInicio(selectedMinute);
             viewModel.setDuracion(duracionSeleccionada);
 
-            if (viewModel.validarSeleccion(selectedYear, selectedMonth, selectedDay)) {
+            if (viewModel.validarSeleccion()) {
                 Navigation.findNavController(view).navigate(R.id.action_realizarReservaFragment_to_seleccionarPlazaFragment);
             }
         });
@@ -82,6 +92,7 @@ public class RealizarReservaFragment extends Fragment {
                     selectedMonth = month;
                     selectedDay = dayOfMonth;
                     etFecha.setText(String.format("%02d/%02d/%04d", dayOfMonth, month + 1, year));
+                    viewModel.setSelectedDate(year, month, dayOfMonth); // <-- Añade esto
                 },
                 hoy.get(Calendar.YEAR), hoy.get(Calendar.MONTH), hoy.get(Calendar.DAY_OF_MONTH));
         datePicker.getDatePicker().setMinDate(hoy.getTimeInMillis());

@@ -53,7 +53,7 @@ public class ConfirmarDetallesFragment extends Fragment {
         MaterialButton btnConfirmar = view.findViewById(R.id.btnConfirmar);
         btnConfirmar.setOnClickListener(v -> {
             btnConfirmar.setEnabled(false);
-            viewModel.verificarYGuardarReserva();
+            viewModel.verificarYGuardarReserva(requireContext());
         });
 
         // Observa resultado de la reserva

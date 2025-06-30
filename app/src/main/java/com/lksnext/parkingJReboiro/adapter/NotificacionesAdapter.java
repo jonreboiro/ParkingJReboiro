@@ -3,6 +3,7 @@ package com.lksnext.parkingJReboiro.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -19,9 +20,16 @@ public class NotificacionesAdapter extends RecyclerView.Adapter<NotificacionesAd
 
     private List<Notificacion> notificaciones;
     private SimpleDateFormat dateFormat;
+    private OnNotificacionClickListener listener;
 
-    public NotificacionesAdapter(List<Notificacion> notificaciones) {
+    public interface OnNotificacionClickListener {
+        void onNotificacionClick(int position);
+        void onEliminarClick(int position);
+    }
+
+    public NotificacionesAdapter(List<Notificacion> notificaciones, OnNotificacionClickListener listener) {
         this.notificaciones = notificaciones;
+        this.listener = listener;
         this.dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
     }
 
@@ -40,12 +48,19 @@ public class NotificacionesAdapter extends RecyclerView.Adapter<NotificacionesAd
         holder.tvMensaje.setText(notificacion.getMensaje());
         holder.tvFecha.setText(dateFormat.format(notificacion.getFecha()));
 
-        // Opcional: marcar visualmente las leídas/no leídas
         if (!notificacion.isLeida()) {
             holder.itemView.setBackgroundResource(R.drawable.bg_item_no_leido);
         } else {
             holder.itemView.setBackgroundResource(0);
         }
+
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) listener.onNotificacionClick(position);
+        });
+
+        holder.btnEliminar.setOnClickListener(v -> {
+            if (listener != null) listener.onEliminarClick(position);
+        });
     }
 
     @Override
@@ -60,12 +75,14 @@ public class NotificacionesAdapter extends RecyclerView.Adapter<NotificacionesAd
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitulo, tvMensaje, tvFecha;
+        ImageButton btnEliminar;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitulo = itemView.findViewById(R.id.tvNotificacionTitulo);
             tvMensaje = itemView.findViewById(R.id.tvNotificacionMensaje);
             tvFecha = itemView.findViewById(R.id.tvNotificacionFecha);
+            btnEliminar = itemView.findViewById(R.id.btnEliminarNotificacion);
         }
     }
 }

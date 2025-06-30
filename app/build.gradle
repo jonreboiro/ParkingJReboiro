@@ -49,6 +49,8 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:21.1.0'
     implementation 'com.google.firebase:firebase-firestore:25.1.4'
     implementation 'com.caverock:androidsvg:1.4'
+    implementation 'com.google.firebase:firebase-crashlytics-buildtools:3.0.4'
+    implementation 'com.google.code.gson:gson:2.10.1'
 
     testImplementation 'junit:junit:4.+'
     testImplementation 'androidx.arch.core:core-testing:2.2.0'
