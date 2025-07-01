@@ -50,7 +50,7 @@ public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView
         spinnerPlanta.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View v, int position, long id) {
-                plantaSeleccionada = position;
+                plantaSeleccionada = (position == 0) ? 0 : -1;
                 parkingMapView.setPlanta(plantaSeleccionada);
                 viewModel.cargarPlazasOcupadas(plantaSeleccionada);
             }
