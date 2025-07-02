@@ -13,6 +13,7 @@
         <item>Planta 0</item>
         <item>Planta -1</item>
     </string-array>
+    <string name="ver_plano">Ver plano</string>
     <string name="tipo_plaza_icono">Icono de tipo de plaza</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="default_web_client_id">964890008416-setgmce466db15ib4d8vuhv7sbe4ks8j.apps.googleusercontent.com.apps.googleusercontent.com</string>
