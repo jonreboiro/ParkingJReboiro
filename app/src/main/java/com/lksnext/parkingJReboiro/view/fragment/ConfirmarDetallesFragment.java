@@ -46,8 +46,13 @@ public class ConfirmarDetallesFragment extends Fragment {
             Navigation.findNavController(view).navigate(R.id.action_confirmarDetallesFragment_to_mainFragment);
         });
 
+        boolean desdeAutomatico = requireArguments().getBoolean("desdeAutomatico", false);
         view.findViewById(R.id.btnVolverSeleccion).setOnClickListener(v -> {
-            Navigation.findNavController(view).navigate(R.id.action_confirmarDetallesFragment_to_seleccionarPlazaFragment);
+            if (desdeAutomatico) {
+                Navigation.findNavController(view).navigate(R.id.action_confirmarDetallesFragment_to_realizarReservaFragment);
+            } else {
+                Navigation.findNavController(view).navigate(R.id.action_confirmarDetallesFragment_to_seleccionarPlazaFragment);
+            }
         });
 
         MaterialButton btnConfirmar = view.findViewById(R.id.btnConfirmar);

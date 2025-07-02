@@ -89,14 +89,18 @@ public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView
                         .setTitle("Advertencia")
                         .setMessage(mensaje)
                         .setPositiveButton("Continuar", (dialog, which) -> {
+                            Bundle args = new Bundle();
+                            args.putBoolean("desdeAutomatico", false);
                             Navigation.findNavController(requireView()).navigate(
-                                    R.id.action_seleccionarPlazaFragment_to_confirmarDetallesFragment);
+                                    R.id.action_seleccionarPlazaFragment_to_confirmarDetallesFragment, args);
                         })
                         .setNegativeButton("Cancelar", null)
                         .show();
             } else {
+                Bundle args = new Bundle();
+                args.putBoolean("desdeAutomatico", false);
                 Navigation.findNavController(requireView()).navigate(
-                        R.id.action_seleccionarPlazaFragment_to_confirmarDetallesFragment);
+                        R.id.action_seleccionarPlazaFragment_to_confirmarDetallesFragment, args);
             }
         });
 
