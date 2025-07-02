@@ -84,7 +84,8 @@ public class RealizarReservaFragment extends Fragment {
             );
 
             typeAdapter = new ReservationTypeAdapter(tipos, type -> {
-                viewModel.setPlazaTipoSeleccionada(type); // LiveData en el ViewModel
+                tipoPlazaSeleccionado = type;
+                viewModel.setPlazaTipoSeleccionada(type);
             });
             rvTipoPlaza.setAdapter(typeAdapter);
 
@@ -128,7 +129,10 @@ public class RealizarReservaFragment extends Fragment {
             viewModel.getPlazaDisponible().observe(getViewLifecycleOwner(), plaza -> {
                 if (plaza != null) {
                     // Plaza encontrada: navega a confirmación
-                    Navigation.findNavController(requireView()).navigate(R.id.action_realizarReservaFragment_to_confirmarDetallesFragment);
+                    Bundle args = new Bundle();
+                    args.putBoolean("desdeAutomatico", true);
+                    Navigation.findNavController(requireView())
+                            .navigate(R.id.action_realizarReservaFragment_to_confirmarDetallesFragment, args);
                 } else if (viewModel.getBusquedaIntentada().getValue() == Boolean.TRUE) {
                     // No encontrada: muestra diálogo
                     new AlertDialog.Builder(requireContext())

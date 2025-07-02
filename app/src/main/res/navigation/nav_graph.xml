@@ -31,7 +31,12 @@
         android:id="@+id/confirmarDetallesFragment"
         android:name="com.lksnext.parkingJReboiro.view.fragment.ConfirmarDetallesFragment"
         android:label="Confirmar Detalles"
-        tools:layout="@layout/fragment_confirmar_detalles" />
+        tools:layout="@layout/fragment_confirmar_detalles">
+        <argument
+            android:name="desdeAutomatico"
+            app:argType="boolean"
+            android:defaultValue="false" />
+    </fragment>
 
     <fragment
         android:id="@+id/consultarReservasFragment"
@@ -94,5 +99,9 @@
         app:destination="@id/seleccionarPlazaFragment"
         app:popUpTo="@id/seleccionarPlazaFragment"
         app:popUpToInclusive="true" />
+
+    <action
+        android:id="@+id/action_confirmarDetallesFragment_to_realizarReservaFragment"
+        app:destination="@id/realizarReservaFragment" />
 
 </navigation>
