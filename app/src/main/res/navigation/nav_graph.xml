@@ -16,6 +16,9 @@
         android:id="@+id/realizarReservaFragment"
         android:name="com.lksnext.parkingJReboiro.view.fragment.RealizarReservaFragment"
         android:label="Realizar Reserva" >
+        <action
+            android:id="@+id/action_realizarReservaFragment_to_confirmarDetallesFragment"
+            app:destination="@id/confirmarDetallesFragment" />
     </fragment>
 
     <fragment

@@ -11,4 +11,5 @@
     <color name="orange">#FF7F50</color>
     <color name="orangeDark">#B13102</color>
     <color name="gray">#888888</color>
+    <color name="md_theme_primaryContainer">#FFE0B2</color>
 </resources>

@@ -20,6 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +49,15 @@ public class NuevaReservaViewModel extends ViewModel {
     private final MutableLiveData<String> mensajeError = new MutableLiveData<>();
     private final MutableLiveData<Boolean> cargando = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> reservaExitosa = new MutableLiveData<>(false);
+
+    private final MutableLiveData<Plaza> plazaDisponible = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> busquedaIntentada = new MutableLiveData<>(false);
+    private final MutableLiveData<String> plazaTipoSeleccionada = new MutableLiveData<>("normal");
+    public LiveData<String> getPlazaTipoSeleccionada() { return plazaTipoSeleccionada; }
+    public void setPlazaTipoSeleccionada(String tipo) { plazaTipoSeleccionada.setValue(tipo); }
+
+    public LiveData<Plaza> getPlazaDisponible() { return plazaDisponible; }
+    public LiveData<Boolean> getBusquedaIntentada() { return busquedaIntentada; }
 
     public Integer getSelectedYear() { return selectedYear; }
     public Integer getSelectedMonth() { return selectedMonth; }
@@ -346,6 +356,85 @@ public class NuevaReservaViewModel extends ViewModel {
         );
     }
 
+    public void buscarPlazaDisponible(String tipoPlaza) {
+        busquedaIntentada.setValue(false);
+        // Asegúrate de que fecha/hora/duración están seteados
+        if (fecha.getValue() == null || horaInicio.getValue() == null || duracion.getValue() == null) {
+            mensajeError.setValue("Completa todos los datos");
+            return;
+        }
+        cargando.setValue(true);
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("reservas")
+                .whereEqualTo("fecha", fecha.getValue())
+                .get()
+                .addOnSuccessListener(reservasSnap -> {
+                    Set<Long> ocupadas = new HashSet<>();
+                    long miInicio = (horaInicio.getValue() * 60L + minutosInicio.getValue()) * 60_000L;
+                    long miFin = miInicio + duracion.getValue() * 60 * 60_000L;
+
+                    for (QueryDocumentSnapshot doc : reservasSnap) {
+                        Reserva reserva = doc.toObject(Reserva.class);
+                        if (tipoPlaza.equals(reserva.getPlazaId().getTipo())) {
+                            long reservaInicio = reserva.getHoraInicio().getHoraInicio();
+                            long reservaFin = reserva.getHoraInicio().getHoraFin();
+                            if (miInicio < reservaFin && reservaInicio < miFin) {
+                                ocupadas.add(reserva.getPlazaId().getId());
+                            }
+                        }
+                    }
+
+                    // Suponiendo que tienes un método para obtener todas las plazas de ese tipo
+                    List<Plaza> plazasTipo = obtenerPlazasPorTipo(tipoPlaza);
+                    Plaza libre = null;
+                    for (Plaza p : plazasTipo) {
+                        if (!ocupadas.contains(p.getId())) {
+                            libre = p;
+                            break;
+                        }
+                    }
+                    if (libre != null) {
+                        plazaId.setValue(libre.getId());
+                        this.tipoPlaza.setValue(tipoPlaza);
+                        plazaDisponible.setValue(libre);
+                    } else {
+                        plazaDisponible.setValue(null);
+                    }
+                    busquedaIntentada.setValue(true);
+                    cargando.setValue(false);
+                })
+                .addOnFailureListener(e -> {
+                    mensajeError.setValue("Error al buscar plaza");
+                    cargando.setValue(false);
+                    plazaDisponible.setValue(null);
+                    busquedaIntentada.setValue(true);
+                });
+    }
+
+    private List<Plaza> obtenerPlazasPorTipo(String tipo) {
+        List<Plaza> plazas = new java.util.ArrayList<>();
+        switch (tipo) {
+            case "normal":
+                long[] normales = {2, 3, 4, 5, 8, 9, 10, 11, 18, 19, 20, 21, 23, 24, 25, 26, 27};
+                for (long id : normales) plazas.add(new Plaza(id, "normal"));
+                break;
+            case "moto":
+                long[] motos = {13, 14, 15, 16, 17};
+                for (long id : motos) plazas.add(new Plaza(id, "moto"));
+                break;
+            case "electrico":
+                long[] electricos = {6, 12};
+                for (long id : electricos) plazas.add(new Plaza(id, "electrico"));
+                break;
+            case "minusvalido":
+                long[] minusvalidos = {1, 7, 22};
+                for (long id : minusvalidos) plazas.add(new Plaza(id, "minusvalido"));
+                break;
+        }
+        return plazas;
+    }
+
     /**
      * Obtiene el texto descriptivo para el tipo de plaza
      */
@@ -375,6 +464,8 @@ public class NuevaReservaViewModel extends ViewModel {
         mensajeError.setValue(null);
         cargando.setValue(false);
         reservaExitosa.setValue(false);
+        plazaDisponible.setValue(null);
+        busquedaIntentada.setValue(false);
     }
 
     /**
