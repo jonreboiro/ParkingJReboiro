@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.lksnext.parkingJReboiro.R;
 import com.lksnext.parkingJReboiro.domain.Reserva;
+import com.lksnext.parkingJReboiro.util.PlazaUtils;
 
 import java.util.List;
 
@@ -33,8 +34,7 @@ public class ReservaHistorialAdapter extends RecyclerView.Adapter<ReservaHistori
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Reserva reserva = reservas.get(position);
 
-        // Obtener tipo de plaza directamente usando el método getTipo()
-        String tipoPlaza = reserva.getPlazaId().getTipo();
+        String tipoPlaza = PlazaUtils.getTipoPlazaFormal(reserva.getPlazaId().getTipo());
         holder.tvPlaza.setText("Plaza: " + tipoPlaza + " - " + reserva.getPlazaId().getId());
         holder.tvFecha.setText("Fecha: " + reserva.getFecha());
 

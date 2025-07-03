@@ -14,6 +14,7 @@ import com.google.android.material.button.MaterialButton;
 import com.lksnext.parkingJReboiro.R;
 import com.lksnext.parkingJReboiro.domain.Plaza;
 import com.lksnext.parkingJReboiro.domain.Reserva;
+import com.lksnext.parkingJReboiro.util.PlazaUtils;
 import com.lksnext.parkingJReboiro.view.fragment.PlanoParkingDialogFragment;
 
 import java.util.List;
@@ -45,7 +46,7 @@ public class ReservaProximaAdapter extends RecyclerView.Adapter<ReservaProximaAd
         Reserva reserva = reservas.get(position);
 
         // Obtener tipo de plaza
-        String tipoPlaza = getTipoPorId(reserva.getPlazaId());
+        String tipoPlaza = PlazaUtils.getTipoPlazaFormal(reserva.getPlazaId().getTipo());
         holder.tvPlaza.setText("Plaza: " + tipoPlaza + "-" + reserva.getPlazaId().getId());
         holder.tvFecha.setText("Fecha: " + reserva.getFecha());
 

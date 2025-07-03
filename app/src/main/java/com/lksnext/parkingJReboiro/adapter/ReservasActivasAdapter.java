@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.lksnext.parkingJReboiro.R;
 import com.lksnext.parkingJReboiro.domain.ReservaConTiempo;
+import com.lksnext.parkingJReboiro.util.PlazaUtils;
 import com.lksnext.parkingJReboiro.view.fragment.PlanoParkingDialogFragment;
 
 import java.util.List;
@@ -42,7 +43,7 @@ public class ReservasActivasAdapter extends RecyclerView.Adapter<ReservasActivas
         ReservaConTiempo reservaConTiempo = reservasActivas.get(position);
 
         // Formatear los datos de la reserva
-        String tipoPlaza = reservaConTiempo.getReserva().getPlazaId().getTipo();
+        String tipoPlaza = PlazaUtils.getTipoPlazaFormal(reservaConTiempo.getReserva().getPlazaId().getTipo());
         holder.tvPlazaReserva.setText("Plaza: " + tipoPlaza + "-" +
                 reservaConTiempo.getReserva().getPlazaId().getId());
         holder.tvFechaReserva.setText("Fecha: " + reservaConTiempo.getReserva().getFecha());
