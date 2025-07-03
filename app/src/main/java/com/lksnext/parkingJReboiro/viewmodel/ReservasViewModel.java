@@ -11,6 +11,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.lksnext.parkingJReboiro.data.ReservationManager;
 import com.lksnext.parkingJReboiro.domain.Reserva;
+import com.lksnext.parkingJReboiro.domain.ReservaConTiempo;
 import com.lksnext.parkingJReboiro.notifications.NotificationScheduler;
 
 import java.text.ParseException;
@@ -23,13 +24,19 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+
 
 public class ReservasViewModel extends ViewModel {
 
     private final ReservationManager reservationManager;
     private final MutableLiveData<List<Reserva>> reservasProximas = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<Reserva>> reservasPasadas = new MutableLiveData<>(new ArrayList<>());
-    private final MutableLiveData<Reserva> reservaActiva = new MutableLiveData<>();
+    private final MutableLiveData<List<ReservaConTiempo>> reservasActivasConTiempo = new MutableLiveData<>(new ArrayList<>());
+    private final Map<String, CountDownTimer> timers = new HashMap<>();
+
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private final MutableLiveData<String> tiempoRestante = new MutableLiveData<>("En curso");
@@ -50,8 +57,8 @@ public class ReservasViewModel extends ViewModel {
         return reservasPasadas;
     }
 
-    public LiveData<Reserva> getReservaActiva() {
-        return reservaActiva;
+    public LiveData<List<ReservaConTiempo>> getReservasActivasConTiempo() {
+        return reservasActivasConTiempo;
     }
 
     public LiveData<String> getErrorMessage() {
@@ -91,12 +98,26 @@ public class ReservasViewModel extends ViewModel {
                 // Procesar reserva actual
                 List<Reserva> actuales = reservasClasificadas.get("actual");
                 if (actuales != null && !actuales.isEmpty()) {
-                    Reserva actual = actuales.get(0);
-                    reservaActiva.setValue(actual);
-                    calcularTiempoRestante(actual);
+                    List<ReservaConTiempo> reservasConTiempo = new ArrayList<>();
+
+                    // Detener temporizadores antiguos que ya no estén en la lista actual
+                    detenerTemporizadoresNoUtilizados(actuales);
+
+                    // Inicializar la lista con estado "En curso" para todas
+                    for (Reserva reserva : actuales) {
+                        reservasConTiempo.add(new ReservaConTiempo(reserva, "En curso"));
+                    }
+
+                    reservasActivasConTiempo.setValue(reservasConTiempo);
+
+                    // Calcular y actualizar tiempos para cada reserva
+                    for (int i = 0; i < actuales.size(); i++) {
+                        calcularTiempoRestanteMultiple(actuales.get(i), i);
+                    }
                 } else {
-                    reservaActiva.setValue(null);
-                    detenerTemporizador();
+                    // No hay reservas activas
+                    reservasActivasConTiempo.setValue(new ArrayList<>());
+                    detenerTodosTemporizadores();
                 }
 
                 // Procesar reservas próximas
@@ -161,6 +182,114 @@ public class ReservasViewModel extends ViewModel {
                 }
         );
     }
+
+    private void calcularTiempoRestanteMultiple(Reserva reserva, int posicion) {
+        try {
+            SimpleDateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            Date fechaReserva = formatoFecha.parse(reserva.getFecha());
+
+            Calendar calFin = Calendar.getInstance();
+            calFin.setTime(fechaReserva);
+
+            // Configurar hora de finalización
+            long horaFinMs = reserva.getHoraInicio().getHoraFin();
+            int horaFinInt = (int)(horaFinMs / (60 * 60 * 1000));
+            int minFinInt = (int)((horaFinMs % (60 * 60 * 1000)) / (60 * 1000));
+
+            calFin.set(Calendar.HOUR_OF_DAY, horaFinInt);
+            calFin.set(Calendar.MINUTE, minFinInt);
+            calFin.set(Calendar.SECOND, 0);
+            calFin.set(Calendar.MILLISECOND, 0);
+
+            long tiempoFinReal = calFin.getTimeInMillis();
+            long tiempoActualMs = System.currentTimeMillis();
+            long tiempoRestanteMs = tiempoFinReal - tiempoActualMs;
+
+            if (tiempoRestanteMs > 0) {
+                iniciarTemporizadorMultiple(tiempoRestanteMs, reserva.getId(), posicion);
+            } else {
+                // Actualizar solo esta reserva en la lista
+                List<ReservaConTiempo> listaActual = reservasActivasConTiempo.getValue();
+                if (listaActual != null && posicion < listaActual.size()) {
+                    listaActual.get(posicion).setTiempoRestante("Finalizada");
+                    reservasActivasConTiempo.setValue(new ArrayList<>(listaActual));
+                }
+            }
+        } catch (ParseException e) {
+            // Actualizar solo esta reserva en la lista
+            List<ReservaConTiempo> listaActual = reservasActivasConTiempo.getValue();
+            if (listaActual != null && posicion < listaActual.size()) {
+                listaActual.get(posicion).setTiempoRestante("En curso");
+                reservasActivasConTiempo.setValue(new ArrayList<>(listaActual));
+            }
+        }
+    }
+
+    private void iniciarTemporizadorMultiple(long tiempoRestanteMs, String reservaId, int posicion) {
+        // Detener el temporizador anterior para esta reserva si existe
+        if (timers.containsKey(reservaId)) {
+            timers.get(reservaId).cancel();
+        }
+
+        // Crear un nuevo temporizador
+        CountDownTimer timer = new CountDownTimer(tiempoRestanteMs, 1000) {
+            @Override
+            public void onTick(long millisUntilFinished) {
+                long horas = TimeUnit.MILLISECONDS.toHours(millisUntilFinished);
+                long minutos = TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished) % 60;
+
+                String tiempo = String.format("En curso - %02d:%02d", horas, minutos);
+
+                // Actualizar solo esta reserva en la lista
+                List<ReservaConTiempo> listaActual = reservasActivasConTiempo.getValue();
+                if (listaActual != null && posicion < listaActual.size()) {
+                    listaActual.get(posicion).setTiempoRestante(tiempo);
+                    reservasActivasConTiempo.setValue(new ArrayList<>(listaActual));
+                }
+            }
+
+            @Override
+            public void onFinish() {
+                // Actualizar estado cuando finaliza
+                List<ReservaConTiempo> listaActual = reservasActivasConTiempo.getValue();
+                if (listaActual != null && posicion < listaActual.size()) {
+                    listaActual.get(posicion).setTiempoRestante("Finalizada");
+                    reservasActivasConTiempo.setValue(new ArrayList<>(listaActual));
+                }
+                timers.remove(reservaId);
+            }
+        };
+
+        timers.put(reservaId, timer);
+        timer.start();
+    }
+
+    private void detenerTemporizadoresNoUtilizados(List<Reserva> reservasActuales) {
+        Set<String> idsActuales = new HashSet<>();
+        for (Reserva reserva : reservasActuales) {
+            idsActuales.add(reserva.getId());
+        }
+
+        Set<String> idsParaEliminar = new HashSet<>();
+        for (Map.Entry<String, CountDownTimer> entry : timers.entrySet()) {
+            if (!idsActuales.contains(entry.getKey())) {
+                entry.getValue().cancel();
+                idsParaEliminar.add(entry.getKey());
+            }
+        }
+
+        for (String id : idsParaEliminar) {
+            timers.remove(id);
+        }
+    }
+
+    private void detenerTodosTemporizadores() {
+        for (CountDownTimer timer : timers.values()) {
+            timer.cancel();
+        }
+        timers.clear();
+    }
+
 
     private void calcularTiempoRestante(Reserva reserva) {
         try {
@@ -233,6 +362,6 @@ public class ReservasViewModel extends ViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
-        detenerTemporizador();
+        detenerTodosTemporizadores();
     }
 }
