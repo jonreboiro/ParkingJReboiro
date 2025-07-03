@@ -58,6 +58,14 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
+        // Añadir observador para perfil incompleto
+        viewModel.getNeedProfileCompletion().observe(this, needsCompletion -> {
+            if (needsCompletion != null && needsCompletion) {
+                startActivity(new Intent(this, CompleteProfileActivity.class));
+                finish();
+            }
+        });
+
         // Observar mensajes de error
         viewModel.getErrorMessage().observe(this, message -> {
             if (message != null && !message.isEmpty()) {
