@@ -15,6 +15,16 @@
         <item name="android:textColorHint">@color/orangeDark</item>
     </style>
 
+    <style name="ThemeOverlay_MaterialComponents_Dialog_Map" parent="Theme.MaterialComponents.Light.Dialog">
+        <item name="colorPrimary">@color/orange</item>
+        <item name="colorPrimaryVariant">@color/orangeDark</item>
+        <item name="colorAccent">@color/teal_200</item>
+        <item name="android:background">@drawable/dialog_background</item>
+        <item name="android:textColorPrimary">@color/black</item>
+        <item name="android:windowMinWidthMajor">80%</item>
+        <item name="android:windowMinWidthMinor">80%</item>
+    </style>
+
     <style name="Theme.ParkingLKS.TextInputLayout">
         <item name="android:textColorHint">@color/orange</item>
         <item name="hintTextColor">@color/orangeDark</item>

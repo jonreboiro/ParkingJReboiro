@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.button.MaterialButton;
 import com.lksnext.parkingJReboiro.R;
 import com.lksnext.parkingJReboiro.adapter.ReservaProximaAdapter;
+import com.lksnext.parkingJReboiro.adapter.ReservasActivasAdapter;
 import com.lksnext.parkingJReboiro.domain.Reserva;
 import com.lksnext.parkingJReboiro.viewmodel.ReservasViewModel;
 
@@ -28,8 +29,9 @@ import java.util.ArrayList;
 
 public class ConsultarReservasFragment extends Fragment {
 
-    private CardView cvReservaActiva;
-    private TextView tvPlazaActiva, tvFechaActiva, tvHoraActiva, tvEstadoActiva;
+    private RecyclerView rvReservasActivas;
+    private TextView tvNoReservasActivas;
+    private ReservasActivasAdapter adapterActivas;
     private RecyclerView rvReservasFuturas;
     private ProgressBar progressBar;
     private ReservaProximaAdapter adapter;
@@ -48,11 +50,11 @@ public class ConsultarReservasFragment extends Fragment {
         viewModel = new ViewModelProvider(requireActivity()).get(ReservasViewModel.class);
 
         // Inicializar vistas
-        cvReservaActiva = view.findViewById(R.id.cvReservaActiva);
-        tvPlazaActiva = view.findViewById(R.id.tvPlazaActiva);
-        tvFechaActiva = view.findViewById(R.id.tvFechaActiva);
-        tvHoraActiva = view.findViewById(R.id.tvHoraActiva);
-        tvEstadoActiva = view.findViewById(R.id.tvEstadoActiva);
+        tvNoReservasActivas = view.findViewById(R.id.tvNoReservasActivas);
+        rvReservasActivas = view.findViewById(R.id.rvReservasActivas);
+        rvReservasActivas.setLayoutManager(new LinearLayoutManager(requireContext()));
+        adapterActivas = new ReservasActivasAdapter(new ArrayList<>());
+        rvReservasActivas.setAdapter(adapterActivas);
         progressBar = view.findViewById(R.id.progressBar);
 
         // Configurar RecyclerView
@@ -77,11 +79,14 @@ public class ConsultarReservasFragment extends Fragment {
 
     private void observeViewModel() {
         // Observar reserva activa
-        viewModel.getReservaActiva().observe(getViewLifecycleOwner(), reserva -> {
-            if (reserva != null) {
-                mostrarReservaActiva(reserva);
+        viewModel.getReservasActivasConTiempo().observe(getViewLifecycleOwner(), reservasActivas -> {
+            adapterActivas.actualizarReservas(reservasActivas);
+            if (reservasActivas == null || reservasActivas.isEmpty()) {
+                rvReservasActivas.setVisibility(View.GONE);
+                tvNoReservasActivas.setVisibility(View.VISIBLE);
             } else {
-                ocultarReservaActiva();
+                rvReservasActivas.setVisibility(View.VISIBLE);
+                tvNoReservasActivas.setVisibility(View.GONE);
             }
         });
 
@@ -89,13 +94,6 @@ public class ConsultarReservasFragment extends Fragment {
         viewModel.getReservasProximas().observe(getViewLifecycleOwner(), reservas -> {
             adapter = new ReservaProximaAdapter(reservas, this::mostrarDialogoConfirmacionCancelar);
             rvReservasFuturas.setAdapter(adapter);
-        });
-
-        // Observar tiempo restante
-        viewModel.getTiempoRestante().observe(getViewLifecycleOwner(), tiempo -> {
-            if (tiempo != null) {
-                tvEstadoActiva.setText("Estado: " + tiempo);
-            }
         });
 
         // Observar mensajes de error
@@ -130,31 +128,6 @@ public class ConsultarReservasFragment extends Fragment {
                 })
                 .setNegativeButton("No", null)
                 .show();
-    }
-
-    private void mostrarReservaActiva(Reserva reserva) {
-        cvReservaActiva.setVisibility(View.VISIBLE);
-
-        String tipoPlaza = reserva.getPlazaId().getTipo();
-        tvPlazaActiva.setText("Plaza: " + tipoPlaza + "-" + reserva.getPlazaId().getId());
-        tvFechaActiva.setText("Fecha: " + reserva.getFecha());
-
-        // Formatear horario
-        long horaInicioMs = reserva.getHoraInicio().getHoraInicio();
-        long horaFinMs = reserva.getHoraInicio().getHoraFin();
-
-        int horaInicio = (int)(horaInicioMs / (60 * 60 * 1000));
-        int minInicio = (int)((horaInicioMs % (60 * 60 * 1000)) / (60 * 1000));
-
-        int horaFin = (int)(horaFinMs / (60 * 60 * 1000));
-        int minFin = (int)((horaFinMs % (60 * 60 * 1000)) / (60 * 1000));
-
-        tvHoraActiva.setText(String.format("Horario: %02d:%02d - %02d:%02d",
-                horaInicio, minInicio, horaFin, minFin));
-    }
-
-    private void ocultarReservaActiva() {
-        cvReservaActiva.setVisibility(View.GONE);
     }
 
     @Override

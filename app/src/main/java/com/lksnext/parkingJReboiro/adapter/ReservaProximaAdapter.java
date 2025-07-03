@@ -3,15 +3,19 @@ package com.lksnext.parkingJReboiro.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
 import com.lksnext.parkingJReboiro.R;
 import com.lksnext.parkingJReboiro.domain.Plaza;
 import com.lksnext.parkingJReboiro.domain.Reserva;
+import com.lksnext.parkingJReboiro.util.PlazaUtils;
+import com.lksnext.parkingJReboiro.view.fragment.PlanoParkingDialogFragment;
 
 import java.util.List;
 
@@ -42,7 +46,7 @@ public class ReservaProximaAdapter extends RecyclerView.Adapter<ReservaProximaAd
         Reserva reserva = reservas.get(position);
 
         // Obtener tipo de plaza
-        String tipoPlaza = getTipoPorId(reserva.getPlazaId());
+        String tipoPlaza = PlazaUtils.getTipoPlazaFormal(reserva.getPlazaId().getTipo());
         holder.tvPlaza.setText("Plaza: " + tipoPlaza + "-" + reserva.getPlazaId().getId());
         holder.tvFecha.setText("Fecha: " + reserva.getFecha());
 
@@ -67,6 +71,13 @@ public class ReservaProximaAdapter extends RecyclerView.Adapter<ReservaProximaAd
                 listener.onCancelarReserva(reserva, holder.getAdapterPosition());
             }
         });
+
+        holder.btnVerPlano.setOnClickListener(v -> {
+            int planta = (reserva.getPlazaId().getId() >= 13) ? 0 : 1; // 0: 13-27, -1: 1-12
+            PlanoParkingDialogFragment dialog = PlanoParkingDialogFragment.newInstance(
+                    planta, reserva.getPlazaId().getId(), reserva.getPlazaId().getTipo());
+            dialog.show(((FragmentActivity) v.getContext()).getSupportFragmentManager(), "PlanoParkingDialog");
+        });
     }
 
     @Override
@@ -81,6 +92,7 @@ public class ReservaProximaAdapter extends RecyclerView.Adapter<ReservaProximaAd
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvPlaza, tvFecha, tvHorario, tvEstado;
         MaterialButton btnCancelar;
+        ImageButton btnVerPlano;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -89,6 +101,8 @@ public class ReservaProximaAdapter extends RecyclerView.Adapter<ReservaProximaAd
             tvHorario = itemView.findViewById(R.id.tvHorarioReserva);
             tvEstado = itemView.findViewById(R.id.tvEstadoReserva);
             btnCancelar = itemView.findViewById(R.id.btnCancelarReserva);
+            btnVerPlano = itemView.findViewById(R.id.btnVerPlano);
+
         }
     }
 }

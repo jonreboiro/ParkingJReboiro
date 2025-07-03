@@ -238,49 +238,54 @@ public class ParkingMapView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (!isEnabled() || !isClickable()) {
+            return false;
+        }
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            // Convertir las coordenadas del toque al espacio del SVG
-            float touchX = (event.getX() - xTranslation) / scale;
-            float touchY = (event.getY() - yTranslation) / scale;
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                // Convertir las coordenadas del toque al espacio del SVG
+                float touchX = (event.getX() - xTranslation) / scale;
+                float touchY = (event.getY() - yTranslation) / scale;
 
-            // Buscar si se tocó alguna plaza
-            for (Map.Entry<String, RectF> entry : plazaBounds.entrySet()) {
-                if (entry.getValue().contains(touchX, touchY)) {
-                    String plazaId = entry.getKey();
+                // Buscar si se tocó alguna plaza
+                for (Map.Entry<String, RectF> entry : plazaBounds.entrySet()) {
+                    if (entry.getValue().contains(touchX, touchY)) {
+                        String plazaId = entry.getKey();
 
-                    // Extraer ID numérico y tipo
-                    Pattern pattern = Pattern.compile("plaza_(\\d+)_(.+)");
-                    Matcher matcher = pattern.matcher(plazaId);
+                        // Extraer ID numérico y tipo
+                        Pattern pattern = Pattern.compile("plaza_(\\d+)_(.+)");
+                        Matcher matcher = pattern.matcher(plazaId);
 
-                    if (matcher.find()) {
-                        long idNumerico = Long.parseLong(matcher.group(1));
-                        String tipo = matcher.group(2);
+                        if (matcher.find()) {
+                            long idNumerico = Long.parseLong(matcher.group(1));
+                            String tipo = matcher.group(2);
 
-                        // Verificar si la plaza está ocupada
-                        if (plazasOcupadas != null && plazasOcupadas.contains(idNumerico)) {
-                            // No permitir selección de plazas ocupadas
+                            // Verificar si la plaza está ocupada
+                            if (plazasOcupadas != null && plazasOcupadas.contains(idNumerico)) {
+                                // No permitir selección de plazas ocupadas
+                                return true;
+                            }
+
+                            // Actualizar selección
+                            plazaSeleccionadaId = idNumerico;
+
+                            // Notificar al listener
+                            if (listener != null) {
+                                listener.onPlazaSelected(idNumerico, tipo);
+                            }
+
+                            // Redibujar la vista
+                            invalidate();
+
+                            Log.d(TAG, "Plaza seleccionada: " + idNumerico + " tipo: " + tipo);
                             return true;
                         }
-
-                        // Actualizar selección
-                        plazaSeleccionadaId = idNumerico;
-
-                        // Notificar al listener
-                        if (listener != null) {
-                            listener.onPlazaSelected(idNumerico, tipo);
-                        }
-
-                        // Redibujar la vista
-                        invalidate();
-
-                        Log.d(TAG, "Plaza seleccionada: " + idNumerico + " tipo: " + tipo);
-                        return true;
                     }
                 }
             }
         }
-
         return super.onTouchEvent(event);
+
     }
 
     public void setOnPlazaSelectedListener(OnPlazaSelectedListener listener) {
@@ -310,6 +315,11 @@ public class ParkingMapView extends View {
         } catch (IOException | SVGParseException e) {
             Log.e(TAG, "Error al cargar SVG", e);
         }
+    }
+
+    public void setPlazaSeleccionada(long plazaId) {
+        this.plazaSeleccionadaId = plazaId;
+        invalidate();
     }
 
 }
