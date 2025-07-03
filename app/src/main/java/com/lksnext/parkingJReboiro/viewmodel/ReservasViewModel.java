@@ -108,6 +108,12 @@ public class ReservasViewModel extends ViewModel {
                         reservasConTiempo.add(new ReservaConTiempo(reserva, "En curso"));
                     }
 
+                    Collections.sort(reservasConTiempo, (r1, r2) -> {
+                        long tiempoFinR1 = calcularTiempoFinalizacion(r1.getReserva());
+                        long tiempoFinR2 = calcularTiempoFinalizacion(r2.getReserva());
+                        return Long.compare(tiempoFinR1, tiempoFinR2);
+                    });
+
                     reservasActivasConTiempo.setValue(reservasConTiempo);
 
                     // Calcular y actualizar tiempos para cada reserva
@@ -122,6 +128,28 @@ public class ReservasViewModel extends ViewModel {
 
                 // Procesar reservas próximas
                 List<Reserva> proximas = reservasClasificadas.get("proximas");
+                if (proximas != null && !proximas.isEmpty()) {
+                    // Ordenar reservas próximas por fecha y hora (las más cercanas primero)
+                    Collections.sort(proximas, (r1, r2) -> {
+                        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                        try {
+                            // Comparar primero por fecha
+                            Date fecha1 = sdf.parse(r1.getFecha());
+                            Date fecha2 = sdf.parse(r2.getFecha());
+                            int comparacionFecha = fecha1.compareTo(fecha2);
+
+                            if (comparacionFecha != 0) {
+                                return comparacionFecha; // Si las fechas son diferentes, ordenar por fecha
+                            } else {
+                                // Si las fechas son iguales, comparar por hora de inicio
+                                return Long.compare(r1.getHoraInicio().getHoraInicio(),
+                                        r2.getHoraInicio().getHoraInicio());
+                            }
+                        } catch (ParseException e) {
+                            return 0;
+                        }
+                    });
+                }
                 reservasProximas.setValue(proximas != null ? proximas : new ArrayList<>());
 
                 // Procesar reservas pasadas
@@ -152,6 +180,30 @@ public class ReservasViewModel extends ViewModel {
                 isLoading.setValue(false);
             }
         });
+    }
+
+    private long calcularTiempoFinalizacion(Reserva reserva) {
+        try {
+            SimpleDateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            Date fechaReserva = formatoFecha.parse(reserva.getFecha());
+
+            Calendar calFin = Calendar.getInstance();
+            calFin.setTime(fechaReserva);
+
+            // Configurar hora de finalización
+            long horaFinMs = reserva.getHoraInicio().getHoraFin();
+            int horaFinInt = (int)(horaFinMs / (60 * 60 * 1000));
+            int minFinInt = (int)((horaFinMs % (60 * 60 * 1000)) / (60 * 1000));
+
+            calFin.set(Calendar.HOUR_OF_DAY, horaFinInt);
+            calFin.set(Calendar.MINUTE, minFinInt);
+            calFin.set(Calendar.SECOND, 0);
+            calFin.set(Calendar.MILLISECOND, 0);
+
+            return calFin.getTimeInMillis();
+        } catch (ParseException e) {
+            return Long.MAX_VALUE; // En caso de error, mover al final
+        }
     }
 
     public void cancelarReserva(Reserva reserva, int position, Context context) {
@@ -288,64 +340,6 @@ public class ReservasViewModel extends ViewModel {
             timer.cancel();
         }
         timers.clear();
-    }
-
-
-    private void calcularTiempoRestante(Reserva reserva) {
-        try {
-            SimpleDateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            Date fechaReserva = formatoFecha.parse(reserva.getFecha());
-
-            Calendar calFin = Calendar.getInstance();
-            calFin.setTime(fechaReserva);
-
-            // Configurar hora de finalización
-            long horaFinMs = reserva.getHoraInicio().getHoraFin();
-            int horaFinInt = (int)(horaFinMs / (60 * 60 * 1000));
-            int minFinInt = (int)((horaFinMs % (60 * 60 * 1000)) / (60 * 1000));
-
-            calFin.set(Calendar.HOUR_OF_DAY, horaFinInt);
-            calFin.set(Calendar.MINUTE, minFinInt);
-            calFin.set(Calendar.SECOND, 0);
-            calFin.set(Calendar.MILLISECOND, 0);
-
-            long tiempoFinReal = calFin.getTimeInMillis();
-            long tiempoActualMs = System.currentTimeMillis();
-            long tiempoRestanteMs = tiempoFinReal - tiempoActualMs;
-
-            if (tiempoRestanteMs > 0) {
-                iniciarTemporizador(tiempoRestanteMs);
-            } else {
-                tiempoRestante.setValue("Finalizada");
-            }
-        } catch (ParseException e) {
-            tiempoRestante.setValue("En curso");
-        }
-    }
-
-    private void iniciarTemporizador(long tiempoRestanteMs) {
-        detenerTemporizador();
-
-        countDownTimer = new CountDownTimer(tiempoRestanteMs, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                long horas = TimeUnit.MILLISECONDS.toHours(millisUntilFinished);
-                long minutos = TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished) % 60;
-
-                String tiempo = String.format("En curso - Tiempo restante: %02d:%02d",
-                        horas, minutos);
-                tiempoRestante.setValue(tiempo);
-            }
-
-            @Override
-            public void onFinish() {
-                tiempoRestante.setValue("Finalizada");
-                timerRunning = false;
-            }
-        };
-
-        countDownTimer.start();
-        timerRunning = true;
     }
 
     public void resetOperacionExitosa() {
