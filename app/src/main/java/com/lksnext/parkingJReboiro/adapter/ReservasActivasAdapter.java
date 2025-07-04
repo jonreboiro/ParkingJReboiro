@@ -64,6 +64,13 @@ public class ReservasActivasAdapter extends RecyclerView.Adapter<ReservasActivas
         // Mostrar estado/tiempo restante
         holder.tvEstadoReserva.setText("Estado: " + reservaConTiempo.getTiempoRestante());
 
+        String matricula = reservaConTiempo.getReserva().getMatricula();
+        if (matricula != null && !matricula.isEmpty()) {
+            holder.tvMatriculaReserva.setText("Matrícula: " + matricula);
+            holder.tvMatriculaReserva.setVisibility(View.VISIBLE);
+        } else {
+            holder.tvMatriculaReserva.setVisibility(View.GONE);
+        }
         // Configurar botón de ver en plano
         holder.btnVerPlano.setOnClickListener(v -> {
             int planta = (reservaConTiempo.getReserva().getPlazaId().getId() >= 13) ? 0 : 1;
@@ -81,7 +88,7 @@ public class ReservasActivasAdapter extends RecyclerView.Adapter<ReservasActivas
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvPlazaReserva, tvFechaReserva, tvHorarioReserva, tvEstadoReserva;
+        TextView tvPlazaReserva, tvFechaReserva, tvHorarioReserva, tvEstadoReserva, tvMatriculaReserva;
         ImageButton btnVerPlano;
 
         public ViewHolder(@NonNull View itemView) {
@@ -90,6 +97,7 @@ public class ReservasActivasAdapter extends RecyclerView.Adapter<ReservasActivas
             tvFechaReserva = itemView.findViewById(R.id.tvFechaReserva);
             tvHorarioReserva = itemView.findViewById(R.id.tvHorarioReserva);
             tvEstadoReserva = itemView.findViewById(R.id.tvEstadoReserva);
+            tvMatriculaReserva = itemView.findViewById(R.id.tvMatriculaReserva);
             btnVerPlano = itemView.findViewById(R.id.btnVerPlano);
         }
     }
