@@ -3,6 +3,7 @@ package com.lksnext.parkingJReboiro.domain;
 public class Reserva {
 
     String fecha, usuario, id;
+    String matricula;
 
     Plaza plaza;
 
@@ -12,12 +13,13 @@ public class Reserva {
 
     }
 
-    public Reserva(String fecha, String usuario, String id, Plaza plaza, Hora hora) {
+    public Reserva(String fecha, String usuario, String id, Plaza plaza, Hora hora, String matricula) {
         this.fecha = fecha;
         this.usuario = usuario;
         this.plaza = plaza;
         this.hora = hora;
         this.id = id;
+        this.matricula = matricula;
     }
 
     public String getFecha() {
@@ -70,5 +72,12 @@ public class Reserva {
 
     public void setUserId(String userId) {
         this.usuario = userId;
+    }
+    public String getMatricula() {
+        return matricula;
+    }
+
+    public void setMatricula(String matricula) {
+        this.matricula = matricula;
     }
 }
