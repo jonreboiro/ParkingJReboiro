@@ -1,13 +1,18 @@
 // app/src/main/java/com/lksnext/parkingplantilla/domain/User.java
 package com.lksnext.parkingJReboiro.domain;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class User {
     private String username;
     private String email;
     private String phone;
     private String employeeId;
+    private List<String> matriculas;
 
     public User() {
+        this.matriculas = new ArrayList<>();
     }
 
     public String getUsername() {
@@ -40,5 +45,13 @@ public class User {
 
     public void setEmployeeId(String employeeId) {
         this.employeeId = employeeId;
+    }
+
+    public List<String> getMatriculas() {
+        return matriculas;
+    }
+
+    public void setMatriculas(List<String> matriculas) {
+        this.matriculas = matriculas != null ? matriculas : new ArrayList<>();
     }
 }

@@ -12,7 +12,9 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.lksnext.parkingJReboiro.domain.User;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
@@ -27,6 +29,9 @@ public class ProfileViewModel extends ViewModel {
     private MutableLiveData<Boolean> navigateToLogin = new MutableLiveData<>(false);
     private MutableLiveData<Boolean> updateSuccess = new MutableLiveData<>();
     private MutableLiveData<Boolean> passwordChangeSuccess = new MutableLiveData<>();
+    private MutableLiveData<List<String>> matriculasList = new MutableLiveData<>(new ArrayList<>());
+
+
 
     public ProfileViewModel() {
         mAuth = FirebaseAuth.getInstance();
@@ -59,6 +64,12 @@ public class ProfileViewModel extends ViewModel {
                         user.setEmail(documentSnapshot.getString("email"));
                         user.setPhone(documentSnapshot.getString("phone"));
                         user.setEmployeeId(documentSnapshot.getString("employeeId"));
+
+                        List<String> matriculas = (List<String>) documentSnapshot.get("matriculas");
+                        if (matriculas != null) {
+                            user.setMatriculas(matriculas);
+                            matriculasList.setValue(matriculas);
+                        }
                         userData.setValue(user);
                     }
                     isLoading.setValue(false);
@@ -142,6 +153,76 @@ public class ProfileViewModel extends ViewModel {
                 });
     }
 
+    public void addPlate(String matricula) {
+        if (!esMatriculaEspanolaValida(matricula)) {
+            errorMessage.setValue("Formato de matrícula inválido. Debe ser 4 números seguidos de 3 consonantes mayúsculas.");
+            return;
+        }
+
+        List<String> currentList = matriculasList.getValue();
+        if (currentList != null && currentList.contains(matricula)) {
+            errorMessage.setValue("Esta matrícula ya está registrada.");
+            return;
+        }
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            navigateToLogin.setValue(true);
+            return;
+        }
+
+        isLoading.setValue(true);
+        String uid = user.getUid();
+
+        List<String> updatedList = new ArrayList<>();
+        if (currentList != null) {
+            updatedList.addAll(currentList);
+        }
+        updatedList.add(matricula);
+
+        db.collection("users").document(uid)
+                .update("matriculas", updatedList)
+                .addOnSuccessListener(aVoid -> {
+                    matriculasList.setValue(updatedList);
+                    isLoading.setValue(false);
+                })
+                .addOnFailureListener(e -> {
+                    errorMessage.setValue("Error al guardar la matrícula: " + e.getMessage());
+                    isLoading.setValue(false);
+                });
+    }
+
+    public void removePlate(String matricula) {
+        List<String> currentList = matriculasList.getValue();
+        if (currentList == null || !currentList.contains(matricula)) {
+            return;
+        }
+
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            navigateToLogin.setValue(true);
+            return;
+        }
+
+        isLoading.setValue(true);
+        String uid = user.getUid();
+
+        List<String> updatedList = new ArrayList<>(currentList);
+        updatedList.remove(matricula);
+
+        db.collection("users").document(uid)
+                .update("matriculas", updatedList)
+                .addOnSuccessListener(aVoid -> {
+                    matriculasList.setValue(updatedList);
+                    isLoading.setValue(false);
+                })
+                .addOnFailureListener(e -> {
+                    errorMessage.setValue("Error al eliminar la matrícula: " + e.getMessage());
+                    isLoading.setValue(false);
+                });
+    }
+
+
     public void logout() {
         mAuth.signOut();
         navigateToLogin.setValue(true);
@@ -156,6 +237,10 @@ public class ProfileViewModel extends ViewModel {
                 Pattern.compile("[A-Z]").matcher(password).find() &&
                 Pattern.compile("[a-z]").matcher(password).find() &&
                 Pattern.compile("[0-9]").matcher(password).find();
+    }
+
+    public boolean esMatriculaEspanolaValida(String matricula) {
+        return matricula != null && matricula.matches("^[0-9]{4}[B-DF-HJ-NP-TV-Z]{3}$");
     }
 
     // Getters para LiveData
@@ -181,5 +266,9 @@ public class ProfileViewModel extends ViewModel {
 
     public LiveData<Boolean> getPasswordChangeSuccess() {
         return passwordChangeSuccess;
+    }
+
+    public LiveData<List<String>> getMatriculasList() {
+        return matriculasList;
     }
 }
