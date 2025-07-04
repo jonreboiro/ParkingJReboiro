@@ -26,6 +26,7 @@
             android:name="com.lksnext.parkingJReboiro.view.activity.MainActivity"
             android:exported="true" />
         <activity android:name="com.lksnext.parkingJReboiro.view.activity.RecuperarPasswordActivity" />
+        <activity android:name=".view.activity.CompleteProfileActivity" />
         <receiver android:name=".notifications.ReservaNotificationReceiver"/>
     </application>
 

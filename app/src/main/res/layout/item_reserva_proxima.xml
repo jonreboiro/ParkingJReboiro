@@ -64,6 +64,15 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
+        <TextView
+            android:id="@+id/tvMatriculaReserva"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/tvEstadoReserva"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCancelarReserva"
             android:layout_width="0dp"
@@ -71,7 +80,7 @@
             android:layout_marginTop="16dp"
             android:text="Cancelar Reserva"
             app:cornerRadius="8dp"
-            app:layout_constraintTop_toBottomOf="@id/tvEstadoReserva"
+            app:layout_constraintTop_toBottomOf="@id/tvMatriculaReserva"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 

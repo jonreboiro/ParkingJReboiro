@@ -65,6 +65,14 @@ public class ReservaProximaAdapter extends RecyclerView.Adapter<ReservaProximaAd
 
         holder.tvEstado.setText("Estado: Programada");
 
+        String matricula = reserva.getMatricula();
+        if (matricula != null && !matricula.isEmpty()) {
+            holder.tvMatricula.setText("Matrícula: " + matricula);
+            holder.tvMatricula.setVisibility(View.VISIBLE);
+        } else {
+            holder.tvMatricula.setVisibility(View.GONE);
+        }
+
         // Configurar botón de cancelar
         holder.btnCancelar.setOnClickListener(v -> {
             if (listener != null) {
@@ -90,7 +98,7 @@ public class ReservaProximaAdapter extends RecyclerView.Adapter<ReservaProximaAd
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvPlaza, tvFecha, tvHorario, tvEstado;
+        TextView tvPlaza, tvFecha, tvHorario, tvEstado, tvMatricula;
         MaterialButton btnCancelar;
         ImageButton btnVerPlano;
 
@@ -100,6 +108,7 @@ public class ReservaProximaAdapter extends RecyclerView.Adapter<ReservaProximaAd
             tvFecha = itemView.findViewById(R.id.tvFechaReserva);
             tvHorario = itemView.findViewById(R.id.tvHorarioReserva);
             tvEstado = itemView.findViewById(R.id.tvEstadoReserva);
+            tvMatricula = itemView.findViewById(R.id.tvMatriculaReserva);
             btnCancelar = itemView.findViewById(R.id.btnCancelarReserva);
             btnVerPlano = itemView.findViewById(R.id.btnVerPlano);
 

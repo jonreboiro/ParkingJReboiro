@@ -48,6 +48,14 @@ public class ReservaHistorialAdapter extends RecyclerView.Adapter<ReservaHistori
         int horaFin = (int)(horaFinMs / (60 * 60 * 1000));
         int minFin = (int)((horaFinMs % (60 * 60 * 1000)) / (60 * 1000));
 
+        String matricula = reserva.getMatricula();
+        if (matricula != null && !matricula.isEmpty()) {
+            holder.tvMatricula.setText("Matrícula: " + matricula);
+            holder.tvMatricula.setVisibility(View.VISIBLE);
+        } else {
+            holder.tvMatricula.setVisibility(View.GONE);
+        }
+
         holder.tvHorario.setText(String.format("Horario: %02d:%02d - %02d:%02d",
                 horaInicio, minInicio, horaFin, minFin));
     }
@@ -58,13 +66,14 @@ public class ReservaHistorialAdapter extends RecyclerView.Adapter<ReservaHistori
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvPlaza, tvFecha, tvHorario;
+        TextView tvPlaza, tvFecha, tvHorario, tvMatricula;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvPlaza = itemView.findViewById(R.id.tvPlazaReserva);
             tvFecha = itemView.findViewById(R.id.tvFechaReserva);
             tvHorario = itemView.findViewById(R.id.tvHorarioReserva);
+            tvMatricula = itemView.findViewById(R.id.tvMatriculaReserva);
         }
     }
 }

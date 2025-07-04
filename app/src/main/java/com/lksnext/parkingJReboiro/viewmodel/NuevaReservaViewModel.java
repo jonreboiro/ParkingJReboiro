@@ -17,6 +17,7 @@ import com.lksnext.parkingJReboiro.notifications.NotificationScheduler;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashSet;
@@ -54,6 +55,9 @@ public class NuevaReservaViewModel extends ViewModel {
     private final MutableLiveData<Boolean> busquedaIntentada = new MutableLiveData<>(false);
     private final MutableLiveData<String> plazaTipoSeleccionada = new MutableLiveData<>("normal");
     public LiveData<String> getPlazaTipoSeleccionada() { return plazaTipoSeleccionada; }
+    private final MutableLiveData<String> matricula = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> guardarMatricula = new MutableLiveData<>(false);
+
     public void setPlazaTipoSeleccionada(String tipo) { plazaTipoSeleccionada.setValue(tipo); }
 
     public LiveData<Plaza> getPlazaDisponible() { return plazaDisponible; }
@@ -79,6 +83,12 @@ public class NuevaReservaViewModel extends ViewModel {
     public void setHoraInicio(int hora) { this.horaInicio.setValue(hora); }
     public void setMinutosInicio(int minutos) { this.minutosInicio.setValue(minutos); }
     public void setDuracion(int duracion) { this.duracion.setValue(duracion); }
+    public LiveData<String> getMatricula() { return matricula; }
+    public void setMatricula(String matricula) { this.matricula.setValue(matricula); }
+
+    public LiveData<Boolean> getGuardarMatricula() { return guardarMatricula; }
+    public void setGuardarMatricula(boolean guardar) { this.guardarMatricula.setValue(guardar); }
+
     public void seleccionarPlaza(long id, String tipo) {
         this.plazaId.setValue(id);
         this.tipoPlaza.setValue(tipo);
@@ -192,6 +202,10 @@ public class NuevaReservaViewModel extends ViewModel {
                 });
     }
 
+    public boolean esMatriculaEspanolaValida(String matricula) {
+        return matricula != null && matricula.matches("^[0-9]{4}[B-DF-HJ-NP-TV-Z]{3}$");
+    }
+
     /**
      * Verifica y guarda una nueva reserva
      */
@@ -199,6 +213,15 @@ public class NuevaReservaViewModel extends ViewModel {
         if (fecha.getValue() == null || horaInicio.getValue() == null ||
                 plazaId.getValue() == null) {
             mensajeError.setValue("Faltan datos para realizar la reserva");
+            return;
+        }
+        if (matricula.getValue() == null || matricula.getValue().isEmpty()) {
+            mensajeError.setValue("Debes seleccionar una matrícula");
+            return;
+        }
+
+        if (!esMatriculaEspanolaValida(matricula.getValue())) {
+            mensajeError.setValue("El formato de la matrícula no es válido");
             return;
         }
 
@@ -261,11 +284,15 @@ public class NuevaReservaViewModel extends ViewModel {
         reserva.setFecha(fecha.getValue());
         reserva.setHoraInicio(hora);
         reserva.setPlazaId(plaza);
+        reserva.setMatricula(matricula.getValue());
 
         FirebaseFirestore.getInstance().collection("reservas")
                 .add(reserva)
                 .addOnSuccessListener(documentReference -> {
                     reserva.setId(documentReference.getId());
+                    if (Boolean.TRUE.equals(guardarMatricula.getValue())) {
+                        guardarMatriculaEnPerfil(matricula.getValue());
+                    }
                     NotificationScheduler.scheduleNotification(context, NotificationInicioMs - 5 * 60_000, 1, "Tu reserva está por empezar", "Faltan 5 minutos para tu reserva.");
                     NotificationScheduler.scheduleNotification(context, NotificationInicioMs, 2, "¡Reserva iniciada!", "Tu reserva ha comenzado.");
                     NotificationScheduler.showInstantNotification(
@@ -281,6 +308,36 @@ public class NuevaReservaViewModel extends ViewModel {
                 .addOnFailureListener(e -> {
                     mensajeError.setValue("Error al guardar la reserva");
                     cargando.setValue(false);
+                });
+    }
+
+    private void guardarMatriculaEnPerfil(String matricula) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        // Primero obtenemos el perfil para ver si ya existe la matrícula
+        db.collection("users").document(userId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    List<String> matriculas = new ArrayList<>();
+
+                    // Si ya existe una lista de matrículas, la obtenemos
+                    if (documentSnapshot.exists() && documentSnapshot.contains("matriculas")) {
+                        List<String> matriculasExistentes = (List<String>) documentSnapshot.get("matriculas");
+                        if (matriculasExistentes != null) {
+                            matriculas.addAll(matriculasExistentes);
+                        }
+                    }
+
+                    // Si la matrícula no está en la lista, la añadimos
+                    if (!matriculas.contains(matricula)) {
+                        matriculas.add(matricula);
+
+                        // Actualizamos el documento en Firestore
+                        db.collection("users").document(userId)
+                                .update("matriculas", matriculas)
+                                .addOnFailureListener(e ->
+                                        System.out.println("Error al guardar matrícula: " + e.getMessage()));
+                    }
                 });
     }
 
@@ -466,6 +523,7 @@ public class NuevaReservaViewModel extends ViewModel {
         reservaExitosa.setValue(false);
         plazaDisponible.setValue(null);
         busquedaIntentada.setValue(false);
+        guardarMatricula.setValue(false);
     }
 
     /**

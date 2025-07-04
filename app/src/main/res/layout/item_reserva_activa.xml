@@ -51,6 +51,12 @@
                 android:layout_marginTop="8dp"
                 android:textStyle="bold"
                 android:textColor="#4CAF50"/>
+
+            <TextView
+                android:id="@+id/tvMatriculaReserva"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"/>
         </LinearLayout>
 
         <ImageButton
