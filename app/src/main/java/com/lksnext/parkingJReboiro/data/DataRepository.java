@@ -7,9 +7,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.lksnext.parkingJReboiro.domain.Callback;
+import com.lksnext.parkingJReboiro.domain.Reserva;
 import com.lksnext.parkingJReboiro.domain.User;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class DataRepository {
@@ -17,10 +19,12 @@ public class DataRepository {
     private static DataRepository instance;
     private final FirebaseAuth mAuth;
     private final FirebaseFirestore db;
+    private final ReservationManager reservationManager;
 
     private DataRepository() {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
+        reservationManager = new ReservationManager();
     }
 
     // Creación de la instancia en caso de que no exista.
@@ -70,5 +74,46 @@ public class DataRepository {
                 .set(userData)
                 .addOnSuccessListener(aVoid -> callback.onSuccess(null))
                 .addOnFailureListener(e -> callback.onError("Error al guardar perfil: " + e.getMessage()));
+    }
+
+    /**
+     * Obtiene las reservas activas del usuario actual
+     */
+    public void getReservasUsuarioActual(final Callback<List<Reserva>> callback) {
+        FirebaseUser currentUser = getCurrentUser();
+        if (currentUser == null) {
+            callback.onError("No hay usuario autenticado");
+            return;
+        }
+
+        String userId = currentUser.getUid();
+        reservationManager.getReservasDelUsuario(userId, new ReservationManager.ReservasCallback() {
+            @Override
+            public void onReservasObtenidas(List<Reserva> reservas) {
+                callback.onSuccess(reservas);
+            }
+
+            @Override
+            public void onError(Exception e) {
+                callback.onError(e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Clasifica las reservas en actuales, próximas y pasadas
+     */
+    public Map<String, List<Reserva>> clasificarReservas(List<Reserva> reservas) {
+        return reservationManager.clasificarReservas(reservas);
+    }
+
+    /**
+     * Cancela una reserva
+     */
+    public void cancelarReserva(String reservaId, Callback<Void> callback) {
+        reservationManager.cancelarReserva(
+                reservaId,
+                unused -> callback.onSuccess(null),
+                e -> callback.onError(e.getMessage()));
     }
 }

@@ -4,9 +4,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.lksnext.parkingJReboiro.data.ReservationManager;
+import com.lksnext.parkingJReboiro.data.DataRepository;
+import com.lksnext.parkingJReboiro.domain.Callback;
 import com.lksnext.parkingJReboiro.domain.Reserva;
 import com.lksnext.parkingJReboiro.domain.ReservaConTiempo;
 
@@ -27,14 +26,14 @@ import android.os.CountDownTimer;
 
 public class DashboardViewModel extends ViewModel {
 
-    private final ReservationManager reservationManager;
+    private final DataRepository dataRepository;
     private final MutableLiveData<List<ReservaConTiempo>> reservasActivas = new MutableLiveData<>();
     private final Map<String, CountDownTimer> timers = new HashMap<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
 
     public DashboardViewModel() {
-        this.reservationManager = new ReservationManager();
+        this.dataRepository = DataRepository.getInstance();
         cargarReservasActivas();
     }
 
@@ -52,21 +51,11 @@ public class DashboardViewModel extends ViewModel {
 
     public void cargarReservasActivas() {
         isLoading.setValue(true);
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = auth.getCurrentUser();
 
-        if (currentUser == null) {
-            errorMessage.setValue("Debes iniciar sesión para ver tus reservas");
-            isLoading.setValue(false);
-            return;
-        }
-
-        String userId = currentUser.getUid();
-
-        reservationManager.getReservasDelUsuario(userId, new ReservationManager.ReservasCallback() {
+        dataRepository.getReservasUsuarioActual(new Callback<List<Reserva>>() {
             @Override
-            public void onReservasObtenidas(List<Reserva> reservas) {
-                Map<String, List<Reserva>> reservasClasificadas = reservationManager.clasificarReservas(reservas);
+            public void onSuccess(List<Reserva> reservas) {
+                Map<String, List<Reserva>> reservasClasificadas = dataRepository.clasificarReservas(reservas);
 
                 // Procesar reservas actuales
                 List<Reserva> actuales = reservasClasificadas.get("actual");
@@ -104,8 +93,8 @@ public class DashboardViewModel extends ViewModel {
             }
 
             @Override
-            public void onError(Exception e) {
-                errorMessage.setValue("Error al cargar reservas: " + e.getMessage());
+            public void onError(String message) {
+                errorMessage.setValue("Error al cargar reservas: " + message);
                 isLoading.setValue(false);
             }
         });
@@ -115,7 +104,11 @@ public class DashboardViewModel extends ViewModel {
         cargarReservasActivas();
     }
 
+    // El resto de métodos permanecen sin cambios ya que son métodos auxiliares
+    // para manejar los temporizadores y cálculos de tiempo
+
     private long calcularTiempoFinalizacion(Reserva reserva) {
+        // Código existente sin cambios...
         try {
             SimpleDateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
             Date fechaReserva = formatoFecha.parse(reserva.getFecha());
@@ -140,6 +133,7 @@ public class DashboardViewModel extends ViewModel {
     }
 
     private void calcularTiempoRestanteMultiple(Reserva reserva, int posicion) {
+        // Código existente sin cambios...
         try {
             SimpleDateFormat formatoFecha = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
             Date fechaReserva = formatoFecha.parse(reserva.getFecha());
@@ -182,6 +176,7 @@ public class DashboardViewModel extends ViewModel {
     }
 
     private void iniciarTemporizadorMultiple(long tiempoRestanteMs, String reservaId, int posicion) {
+        // Código existente sin cambios...
         // Detener el temporizador anterior para esta reserva si existe
         if (timers.containsKey(reservaId)) {
             timers.get(reservaId).cancel();
@@ -221,6 +216,7 @@ public class DashboardViewModel extends ViewModel {
     }
 
     private void detenerTemporizadoresNoUtilizados(List<Reserva> reservasActuales) {
+        // Código existente sin cambios...
         Set<String> idsActuales = new HashSet<>();
         for (Reserva reserva : reservasActuales) {
             idsActuales.add(reserva.getId());
