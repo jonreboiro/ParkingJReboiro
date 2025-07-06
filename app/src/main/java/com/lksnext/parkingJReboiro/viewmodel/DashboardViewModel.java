@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.lksnext.parkingJReboiro.data.DataRepository;
+import com.lksnext.parkingJReboiro.data.IDataRepository;
 import com.lksnext.parkingJReboiro.domain.Callback;
 import com.lksnext.parkingJReboiro.domain.Reserva;
 import com.lksnext.parkingJReboiro.domain.ReservaConTiempo;
@@ -26,7 +27,7 @@ import android.os.CountDownTimer;
 
 public class DashboardViewModel extends ViewModel {
 
-    private final DataRepository dataRepository;
+    private final IDataRepository dataRepository;
     private final MutableLiveData<List<ReservaConTiempo>> reservasActivas = new MutableLiveData<>();
     private final Map<String, CountDownTimer> timers = new HashMap<>();
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
@@ -34,6 +35,11 @@ public class DashboardViewModel extends ViewModel {
 
     public DashboardViewModel() {
         this.dataRepository = DataRepository.getInstance();
+        cargarReservasActivas();
+    }
+
+    public DashboardViewModel(IDataRepository repository) {
+        this.dataRepository = repository;
         cargarReservasActivas();
     }
 
