@@ -38,8 +38,8 @@ public class MainActivity extends AppCompatActivity {
             int itemId = item.getItemId();
             // Evita navegar si ya estás en el destino
             int currentDest = navController.getCurrentDestination() != null ? navController.getCurrentDestination().getId() : -1;
-            if (itemId == R.id.newres && currentDest != R.id.mainFragment) {
-                navController.navigate(R.id.mainFragment);
+            if (itemId == R.id.newres && currentDest != R.id.realizarReservaFragment) {
+                navController.navigate(R.id.realizarReservaFragment);
                 return true;
             } else if (itemId == R.id.reservations && currentDest != R.id.consultarReservasFragment) {
                 navController.navigate(R.id.consultarReservasFragment);
@@ -55,28 +55,35 @@ public class MainActivity extends AppCompatActivity {
         });
 
         navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
-            actualizarSeleccionNavegacion(destination.getId());
-            // Oculta la barra en el dashboard
             if (destination.getId() == R.id.dashboardFragment) {
                 bottomNavigationView.setVisibility(View.GONE);
             } else {
                 bottomNavigationView.setVisibility(View.VISIBLE);
+                bottomNavigationView.post(() -> {
+                    actualizarSeleccionNavegacion(destination.getId());
+                });
             }
         });
     }
 
     private void actualizarSeleccionNavegacion(int destinationId) {
-        // Asignar el elemento correcto según el destino
-        if (destinationId == R.id.realizarReservaFragment || destinationId == R.id.mainFragment) {
-            bottomNavigationView.setSelectedItemId(R.id.newres);
-        } else if (destinationId == R.id.consultarReservasFragment) {
-            bottomNavigationView.setSelectedItemId(R.id.reservations);
-        } else if (destinationId == R.id.notificacionesFragment) {
-            bottomNavigationView.setSelectedItemId(R.id.notifications);
-        } else if (destinationId == R.id.profileFragment) {
-            bottomNavigationView.setSelectedItemId(R.id.person);
+        for (int i = 0; i < bottomNavigationView.getMenu().size(); i++) {
+            bottomNavigationView.getMenu().getItem(i).setChecked(false);
         }
-        // Nota: Si no es ninguno de estos destinos, no cambiamos la selección actual
+
+        if (destinationId == R.id.realizarReservaFragment) {
+            bottomNavigationView.getMenu().findItem(R.id.newres).setChecked(true);
+        } else if (destinationId == R.id.consultarReservasFragment) {
+            bottomNavigationView.getMenu().findItem(R.id.reservations).setChecked(true);
+        } else if (destinationId == R.id.notificacionesFragment) {
+            bottomNavigationView.getMenu().findItem(R.id.notifications).setChecked(true);
+        } else if (destinationId == R.id.profileFragment) {
+            bottomNavigationView.getMenu().findItem(R.id.person).setChecked(true);
+        }
+    }
+
+    public void forzarSeleccionMenu(int itemId) {
+        bottomNavigationView.setSelectedItemId(itemId);
     }
 
     @Override
