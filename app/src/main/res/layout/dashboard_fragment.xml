@@ -30,7 +30,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Te damos la bienvenida a tu gestor de parking"
+            android:text="Te damos la bienvenida a Park W'Us"
             android:textAppearance="@android:style/TextAppearance.Material.Subhead"
             android:textColor="@android:color/darker_gray" />
 
