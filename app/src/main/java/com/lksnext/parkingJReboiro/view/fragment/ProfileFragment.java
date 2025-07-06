@@ -108,6 +108,11 @@ public class ProfileFragment extends Fragment {
             binding.tvEmptyMatriculas.setVisibility(
                     matriculas == null || matriculas.isEmpty() ? View.VISIBLE : View.GONE);
         });
+
+        viewModel.getIsGoogleUser().observe(getViewLifecycleOwner(), isGoogleUser -> {
+            binding.btnChangePassword.setVisibility(isGoogleUser ? View.GONE : View.VISIBLE);
+        });
+
     }
 
     private void toggleEditMode() {

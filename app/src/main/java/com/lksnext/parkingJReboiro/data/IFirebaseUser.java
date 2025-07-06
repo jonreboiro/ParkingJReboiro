@@ -1,7 +1,12 @@
 package com.lksnext.parkingJReboiro.data;
 
+import com.google.firebase.auth.UserInfo;
+
+import java.util.List;
+
 public interface IFirebaseUser {
     String getEmail();
     String getUid();
-    // Añade otros métodos que necesites
+    List<? extends UserInfo> getProviderData();
+
 }

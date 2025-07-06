@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.auth.UserInfo;
 import com.lksnext.parkingJReboiro.data.DataRepository;
 import com.lksnext.parkingJReboiro.data.FirebaseAuthProvider;
 import com.lksnext.parkingJReboiro.data.IDataRepository;
@@ -23,6 +25,8 @@ public class ProfileViewModel extends ViewModel {
     private final IDataRepository repository;
     private final FirebaseAuth mAuth;
     private final IFirebaseAuthProvider authProvider;
+
+    private MutableLiveData<Boolean> isGoogleUser = new MutableLiveData<>(false);
 
     private MutableLiveData<User> userData = new MutableLiveData<>();
     private MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
@@ -71,6 +75,7 @@ public class ProfileViewModel extends ViewModel {
                 if (user.getMatriculas() != null) {
                     matriculasList.setValue(user.getMatriculas());
                 }
+                isGoogleUser.setValue(isGoogleUser());
             }
             isLoading.setValue(false);
         });
@@ -139,6 +144,19 @@ public class ProfileViewModel extends ViewModel {
                 isLoading.setValue(false);
             }
         });
+    }
+
+    public boolean isGoogleUser() {
+        IFirebaseUser currentUser = authProvider.getCurrentUser();
+        if (currentUser == null) return false;
+
+        for (UserInfo profile : currentUser.getProviderData()) {
+            // Si el proveedor es Google, devuelve true
+            if (profile.getProviderId().equals(GoogleAuthProvider.PROVIDER_ID)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void addPlate(String matricula) {
@@ -243,5 +261,8 @@ public class ProfileViewModel extends ViewModel {
 
     public LiveData<List<String>> getMatriculasList() {
         return matriculasList;
+    }
+    public LiveData<Boolean> getIsGoogleUser() {
+        return isGoogleUser;
     }
 }
