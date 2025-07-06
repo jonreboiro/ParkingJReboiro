@@ -6,10 +6,15 @@ import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.util.Log;
+
 import androidx.core.app.NotificationCompat;
+
+import com.google.firebase.auth.FirebaseUser;
 import com.lksnext.parkingJReboiro.R;
 import com.lksnext.parkingJReboiro.domain.Notificacion;
 import com.google.firebase.auth.FirebaseAuth;
+import com.lksnext.parkingJReboiro.view.activity.LoginActivity;
 
 
 public class ReservaNotificationReceiver extends BroadcastReceiver {
@@ -34,9 +39,21 @@ public class ReservaNotificationReceiver extends BroadcastReceiver {
                 .setAutoCancel(true);
 
         manager.notify(notificationId, builder.build());
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        NotificacionesStorage.guardarNotificacion(context, new Notificacion(
-                notificationId, titulo, mensaje, new java.util.Date(), false
-        ), userId);
+
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = auth.getCurrentUser();
+
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            NotificacionesStorage.guardarNotificacion(context, new Notificacion(
+                    notificationId, titulo, mensaje, new java.util.Date(), false
+            ), userId);
+
+        } else {
+            Log.w("ReservaNotification", "No hay usuario autenticado. Notificación ignorada.");
+            Intent loginIntent = new Intent(context, LoginActivity.class);
+            loginIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            context.startActivity(loginIntent);
+        }
     }
 }
