@@ -1,32 +1,74 @@
 package com.lksnext.parkingJReboiro.data;
 
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.lksnext.parkingJReboiro.domain.Callback;
+import com.lksnext.parkingJReboiro.domain.User;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class DataRepository {
 
     private static DataRepository instance;
-    private DataRepository(){
+    private final FirebaseAuth mAuth;
+    private final FirebaseFirestore db;
 
+    private DataRepository() {
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
     }
 
-    //Creación de la instancia en caso de que no exista.
-    public static synchronized DataRepository getInstance(){
-        if (instance==null){
+    // Creación de la instancia en caso de que no exista.
+    public static synchronized DataRepository getInstance() {
+        if (instance == null) {
             instance = new DataRepository();
         }
         return instance;
     }
 
-    //Petición del login.
-    public void login(String email, String pass, Callback callback){
-        try {
-            //Realizar petición
-            callback.onSuccess();
-        } catch (Exception e){
-            callback.onFailure();
-        }
+    public FirebaseUser getCurrentUser() {
+        return mAuth.getCurrentUser();
     }
 
-    public void logout() {
+    public LiveData<User> getUserProfile(String uid) {
+        MutableLiveData<User> userLiveData = new MutableLiveData<>();
+
+        db.collection("users").document(uid)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        User user = documentSnapshot.toObject(User.class);
+                        userLiveData.setValue(user);
+                    } else {
+                        userLiveData.setValue(null);
+                    }
+                })
+                .addOnFailureListener(e -> userLiveData.setValue(null));
+
+        return userLiveData;
+    }
+
+    public void updateUserProfile(User user, Callback callback) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            callback.onError("No hay usuario autenticado");
+            return;
+        }
+
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("username", user.getUsername());
+        userData.put("email", user.getEmail());
+        userData.put("phone", user.getPhone());
+        userData.put("employeeId", user.getEmployeeId());
+
+        db.collection("users").document(currentUser.getUid())
+                .set(userData)
+                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                .addOnFailureListener(e -> callback.onError("Error al guardar perfil: " + e.getMessage()));
     }
 }
