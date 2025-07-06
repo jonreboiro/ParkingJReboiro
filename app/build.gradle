@@ -37,6 +37,30 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+
+            all {
+                // Evita problemas de serialización limitando el fork
+                forkEvery = 0
+                maxParallelForks = 1
+
+                // Aumenta la memoria disponible
+                jvmArgs '-Xmx2048m'
+            }
+        }
+    }
+}
+
+tasks.withType(Test) {
+    maxParallelForks = 1
+    forkEvery = 0
+
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+    }
 }
 
 jacoco {
@@ -44,30 +68,36 @@ jacoco {
 }
 
 task jacocoTestReport(type: JacocoReport) {
-    dependsOn "testDebugUnitTest" // Asegura que los tests corran antes
+    dependsOn "testDebugUnitTest"
 
     reports {
         xml.required.set(true)
+        html.required.set(true)
+        xml.outputLocation.set(file("$buildDir/reports/jacoco/jacocoTestReport.xml"))
         html.required.set(false)
         csv.required.set(false)
     }
 
-    def fileFilter = ['**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*',
-                      '**/*Test*.*', 'android/**/*.*']
+    def fileFilter = [
+            '**/R.class', '**/R$*.class', '**/BuildConfig.*', '**/Manifest*.*',
+            '**/*Test*.*', 'android/**/*.*'
+    ]
 
     def debugTree = fileTree(dir: "$buildDir/intermediates/javac/debug", excludes: fileFilter)
     def kotlinDebugTree = fileTree(dir: "$buildDir/tmp/kotlin-classes/debug", excludes: fileFilter)
 
     classDirectories.setFrom(files([debugTree, kotlinDebugTree]))
     sourceDirectories.setFrom(files(["src/main/java", "src/main/kotlin"]))
-    executionData.setFrom(fileTree(dir: buildDir, includes: [
-            "jacoco/testDebugUnitTest.exec"
-    ]))
+
+    executionData.setFrom(file("$buildDir/outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec"))
+
+
 }
+
 
 sonarqube {
     properties {
-        property "sonar.coverage.jacoco.xmlReportPaths", "$buildDir/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"
+        property "sonar.coverage.jacoco.xmlReportPaths", "$buildDir/reports/jacoco/jacocoTestReport.xml"
     }
 }
 
@@ -92,6 +122,9 @@ dependencies {
     testImplementation 'androidx.arch.core:core-testing:2.2.0'
     testImplementation 'org.hamcrest:hamcrest:2.2'
     testImplementation "org.mockito:mockito-inline:4.11.0"
+    testImplementation "androidx.test:core:1.5.0"
+    testImplementation "org.robolectric:robolectric:4.10.3"
+
 
     androidTestImplementation 'androidx.test.ext:junit:1.2.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'

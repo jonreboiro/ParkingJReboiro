@@ -4,6 +4,7 @@ import android.content.Context;
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 import androidx.lifecycle.Observer;
+import androidx.test.core.app.ApplicationProvider;
 
 import com.lksnext.parkingJReboiro.data.IDataRepository;
 import com.lksnext.parkingJReboiro.data.IFirebaseUser;
@@ -17,11 +18,14 @@ import com.lksnext.parkingJReboiro.notifications.NotificationScheduler;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,6 +44,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 31)
 public class ReservasViewModelTest {
 
     @Rule
@@ -88,7 +94,7 @@ public class ReservasViewModelTest {
         viewModel.isLoading().observeForever(isLoadingObserver);
         viewModel.getOperacionExitosa().observeForever(operacionExitosaObserver);
 
-        mockContext = new TestMockContext();
+        mockContext = ApplicationProvider.getApplicationContext();
     }
 
     @Test

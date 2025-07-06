@@ -28,6 +28,7 @@ import android.view.Display;
 import androidx.annotation.NonNull;
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule;
 import androidx.lifecycle.Observer;
+import androidx.test.core.app.ApplicationProvider;
 
 import com.lksnext.parkingJReboiro.data.IDataRepository;
 import com.lksnext.parkingJReboiro.domain.Callback;
@@ -39,11 +40,14 @@ import com.lksnext.parkingJReboiro.util.ITimer;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.MockitoAnnotations;
+import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -71,6 +75,8 @@ import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
+@RunWith(RobolectricTestRunner.class)
+@Config(sdk = 31)
 public class NuevaReservaViewModelTest {
 
     @Rule
@@ -140,7 +146,7 @@ public class NuevaReservaViewModelTest {
             public void cancel() {}
         });
 
-        testContext = new TestMockContext();
+        testContext = ApplicationProvider.getApplicationContext();
     }
 
     @Test
