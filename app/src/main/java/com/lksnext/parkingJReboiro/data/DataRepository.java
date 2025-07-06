@@ -3,8 +3,10 @@ package com.lksnext.parkingJReboiro.data;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.lksnext.parkingJReboiro.domain.Callback;
 import com.lksnext.parkingJReboiro.domain.Reserva;
@@ -115,5 +117,48 @@ public class DataRepository {
                 reservaId,
                 unused -> callback.onSuccess(null),
                 e -> callback.onError(e.getMessage()));
+    }
+
+    public void loginWithEmailAndPassword(String email, String password, Callback<Void> callback) {
+        mAuth.signInWithEmailAndPassword(email, password)
+                .addOnSuccessListener(authResult -> callback.onSuccess(null))
+                .addOnFailureListener(e -> callback.onError(obtenerMensajeError(e)));
+    }
+
+    public void loginWithGoogle(String idToken, Callback<Boolean> callback) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        mAuth.signInWithCredential(credential)
+                .addOnSuccessListener(authResult -> checkUserProfileComplete(callback))
+                .addOnFailureListener(e -> callback.onError("Error autenticando con Google"));
+    }
+
+    public void checkUserProfileComplete(Callback<Boolean> callback) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            db.collection("users")
+                    .document(user.getUid())
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        boolean needsCompletion = !documentSnapshot.exists() ||
+                                !documentSnapshot.contains("employeeId") ||
+                                documentSnapshot.getString("employeeId") == null;
+                        callback.onSuccess(needsCompletion);
+                    })
+                    .addOnFailureListener(e -> callback.onError("Error al verificar perfil"));
+        } else {
+            callback.onError("Error de autenticación");
+        }
+    }
+
+    private String obtenerMensajeError(Exception e) {
+        if (e != null && e.getMessage() != null) {
+            if (e.getMessage().contains("There is no user record")) {
+                return "Usuario no registrado";
+            }
+            if (e.getMessage().contains("The password is invalid")) {
+                return "Contraseña incorrecta";
+            }
+        }
+        return "Error al iniciar sesión: " + (e != null ? e.getMessage() : "");
     }
 }
