@@ -7,9 +7,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.lksnext.parkingJReboiro.data.ReservationManager;
+import com.lksnext.parkingJReboiro.data.DataRepository;
+import com.lksnext.parkingJReboiro.domain.Callback;
 import com.lksnext.parkingJReboiro.domain.Reserva;
 import com.lksnext.parkingJReboiro.domain.ReservaConTiempo;
 import com.lksnext.parkingJReboiro.notifications.NotificationScheduler;
@@ -20,18 +19,18 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 
 public class ReservasViewModel extends ViewModel {
 
-    private final ReservationManager reservationManager;
+    private final DataRepository dataRepository;
     private final MutableLiveData<List<Reserva>> reservasProximas = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<Reserva>> reservasPasadas = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<ReservaConTiempo>> reservasActivasConTiempo = new MutableLiveData<>(new ArrayList<>());
@@ -46,9 +45,10 @@ public class ReservasViewModel extends ViewModel {
     private boolean timerRunning = false;
 
     public ReservasViewModel() {
-        this.reservationManager = new ReservationManager();
+        this.dataRepository = DataRepository.getInstance();
     }
 
+    // Getters para LiveData (sin cambios)
     public LiveData<List<Reserva>> getReservasProximas() {
         return reservasProximas;
     }
@@ -79,31 +79,24 @@ public class ReservasViewModel extends ViewModel {
 
     public void cargarReservasUsuario() {
         isLoading.setValue(true);
-        FirebaseAuth auth = FirebaseAuth.getInstance();
-        FirebaseUser currentUser = auth.getCurrentUser();
 
-        if (currentUser == null) {
+        if (dataRepository.getCurrentUser() == null) {
             errorMessage.setValue("Debes iniciar sesión para ver tus reservas");
             isLoading.setValue(false);
             return;
         }
 
-        String userId = currentUser.getUid();
-
-        reservationManager.getReservasDelUsuario(userId, new ReservationManager.ReservasCallback() {
+        dataRepository.getReservasUsuarioActual(new Callback<List<Reserva>>() {
             @Override
-            public void onReservasObtenidas(List<Reserva> reservas) {
-                Map<String, List<Reserva>> reservasClasificadas = reservationManager.clasificarReservas(reservas);
+            public void onSuccess(List<Reserva> reservas) {
+                Map<String, List<Reserva>> reservasClasificadas = dataRepository.clasificarReservas(reservas);
 
                 // Procesar reserva actual
                 List<Reserva> actuales = reservasClasificadas.get("actual");
                 if (actuales != null && !actuales.isEmpty()) {
                     List<ReservaConTiempo> reservasConTiempo = new ArrayList<>();
-
-                    // Detener temporizadores antiguos que ya no estén en la lista actual
                     detenerTemporizadoresNoUtilizados(actuales);
 
-                    // Inicializar la lista con estado "En curso" para todas
                     for (Reserva reserva : actuales) {
                         reservasConTiempo.add(new ReservaConTiempo(reserva, "En curso"));
                     }
@@ -116,12 +109,10 @@ public class ReservasViewModel extends ViewModel {
 
                     reservasActivasConTiempo.setValue(reservasConTiempo);
 
-                    // Calcular y actualizar tiempos para cada reserva
                     for (int i = 0; i < actuales.size(); i++) {
                         calcularTiempoRestanteMultiple(actuales.get(i), i);
                     }
                 } else {
-                    // No hay reservas activas
                     reservasActivasConTiempo.setValue(new ArrayList<>());
                     detenerTodosTemporizadores();
                 }
@@ -129,19 +120,16 @@ public class ReservasViewModel extends ViewModel {
                 // Procesar reservas próximas
                 List<Reserva> proximas = reservasClasificadas.get("proximas");
                 if (proximas != null && !proximas.isEmpty()) {
-                    // Ordenar reservas próximas por fecha y hora (las más cercanas primero)
                     Collections.sort(proximas, (r1, r2) -> {
                         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
                         try {
-                            // Comparar primero por fecha
                             Date fecha1 = sdf.parse(r1.getFecha());
                             Date fecha2 = sdf.parse(r2.getFecha());
                             int comparacionFecha = fecha1.compareTo(fecha2);
 
                             if (comparacionFecha != 0) {
-                                return comparacionFecha; // Si las fechas son diferentes, ordenar por fecha
+                                return comparacionFecha;
                             } else {
-                                // Si las fechas son iguales, comparar por hora de inicio
                                 return Long.compare(r1.getHoraInicio().getHoraInicio(),
                                         r2.getHoraInicio().getHoraInicio());
                             }
@@ -155,7 +143,6 @@ public class ReservasViewModel extends ViewModel {
                 // Procesar reservas pasadas
                 List<Reserva> pasadas = reservasClasificadas.get("pasadas");
                 if (pasadas != null) {
-                    // Ordenar reservas pasadas de más reciente a más antigua
                     Collections.sort(pasadas, (r1, r2) -> {
                         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
                         try {
@@ -175,8 +162,36 @@ public class ReservasViewModel extends ViewModel {
             }
 
             @Override
-            public void onError(Exception e) {
-                errorMessage.setValue("Error al cargar reservas: " + e.getMessage());
+            public void onError(String message) {
+                errorMessage.setValue("Error al cargar reservas: " + message);
+                isLoading.setValue(false);
+            }
+        });
+    }
+
+    public void cancelarReserva(Reserva reserva, int position, Context context) {
+        isLoading.setValue(true);
+        dataRepository.cancelarReserva(reserva.getId(), new Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                List<Reserva> listaActual = reservasProximas.getValue();
+                if (listaActual != null) {
+                    listaActual.remove(position);
+                    reservasProximas.setValue(listaActual);
+                }
+                NotificationScheduler.showInstantNotification(
+                        context,
+                        101,
+                        "Reserva cancelada",
+                        "Tu reserva ha sido cancelada correctamente."
+                );
+                operacionExitosa.setValue(true);
+                isLoading.setValue(false);
+            }
+
+            @Override
+            public void onError(String message) {
+                errorMessage.setValue("Error al cancelar la reserva: " + message);
                 isLoading.setValue(false);
             }
         });
@@ -190,7 +205,6 @@ public class ReservasViewModel extends ViewModel {
             Calendar calFin = Calendar.getInstance();
             calFin.setTime(fechaReserva);
 
-            // Configurar hora de finalización
             long horaFinMs = reserva.getHoraInicio().getHoraFin();
             int horaFinInt = (int)(horaFinMs / (60 * 60 * 1000));
             int minFinInt = (int)((horaFinMs % (60 * 60 * 1000)) / (60 * 1000));
@@ -202,37 +216,8 @@ public class ReservasViewModel extends ViewModel {
 
             return calFin.getTimeInMillis();
         } catch (ParseException e) {
-            return Long.MAX_VALUE; // En caso de error, mover al final
+            return Long.MAX_VALUE;
         }
-    }
-
-    public void cancelarReserva(Reserva reserva, int position, Context context) {
-        isLoading.setValue(true);
-        reservationManager.cancelarReserva(
-                reserva.getId(),
-                aVoid -> {
-                    // Éxito al cancelar
-                    List<Reserva> listaActual = reservasProximas.getValue();
-                    if (listaActual != null) {
-                        listaActual.remove(position);
-                        reservasProximas.setValue(listaActual);
-                    }
-                    NotificationScheduler.showInstantNotification(
-                            // Usa el contexto adecuado, por ejemplo, si tienes acceso a Application:
-                            context,
-                            101, // ID único para cancelación
-                            "Reserva cancelada",
-                            "Tu reserva ha sido cancelada correctamente."
-                    );
-                    operacionExitosa.setValue(true);
-                    isLoading.setValue(false);
-                },
-                e -> {
-                    // Error al cancelar
-                    errorMessage.setValue("Error al cancelar la reserva: " + e.getMessage());
-                    isLoading.setValue(false);
-                }
-        );
     }
 
     private void calcularTiempoRestanteMultiple(Reserva reserva, int posicion) {

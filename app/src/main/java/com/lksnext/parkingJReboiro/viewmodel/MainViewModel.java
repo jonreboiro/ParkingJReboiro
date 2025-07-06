@@ -4,8 +4,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.lksnext.parkingJReboiro.data.DataRepository;
+import com.lksnext.parkingJReboiro.domain.Callback;
 
 public class MainViewModel extends ViewModel {
 
@@ -18,11 +18,11 @@ public class MainViewModel extends ViewModel {
     private final MutableLiveData<String> _errorMessage = new MutableLiveData<>();
     public LiveData<String> errorMessage = _errorMessage;
 
-    private final FirebaseAuth firebaseAuth;
+    private final DataRepository dataRepository;
 
     public MainViewModel() {
-        // Inicializamos Firebase Auth
-        firebaseAuth = FirebaseAuth.getInstance();
+        // Obtenemos la instancia del repositorio
+        dataRepository = DataRepository.getInstance();
 
         // Comprobamos estado de autenticación al inicio
         checkAuthenticationState();
@@ -32,8 +32,7 @@ public class MainViewModel extends ViewModel {
      * Comprueba si el usuario está autenticado
      */
     public void checkAuthenticationState() {
-        FirebaseUser currentUser = firebaseAuth.getCurrentUser();
-        _isAuthenticated.setValue(currentUser != null);
+        _isAuthenticated.setValue(dataRepository.getCurrentUser() != null);
     }
 
     /**
@@ -41,17 +40,25 @@ public class MainViewModel extends ViewModel {
      */
     public void signOut() {
         _isLoading.setValue(true);
-        firebaseAuth.signOut();
-        _isAuthenticated.setValue(false);
-        _isLoading.setValue(false);
+        dataRepository.signOut(new Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                _isAuthenticated.setValue(false);
+                _isLoading.setValue(false);
+            }
+
+            @Override
+            public void onError(String message) {
+                _errorMessage.setValue(message);
+                _isLoading.setValue(false);
+            }
+        });
     }
 
     /**
      * Refresca datos de usuario si es necesario
      */
     public void refreshUserData() {
-        // Aquí podríamos cargar datos adicionales del usuario
-        // como nombre, permisos, etc.
         checkAuthenticationState();
     }
 

@@ -1,5 +1,26 @@
 <resources>
     <string name="app_name">ParkingPlantilla</string>
+    <string name="app_title">Park W\'Us</string>
+
+    <!-- Pantalla de Login -->
+    <string name="login_subtitle">Inicia sesión en tu cuenta</string>
+    <string name="email_hint">Correo electrónico</string>
+    <string name="password_hint">Contraseña</string>
+    <string name="login_button">Iniciar sesión</string>
+    <string name="forgot_password">¿Has olvidado tu contraseña?</string>
+    <string name="or_text">O</string>
+    <string name="register_prompt">¿No tienes cuenta? Regístrate</string>
+
+    <!-- Pantalla de Registro -->
+    <string name="register_subtitle">Crea tu cuenta para comenzar</string>
+    <string name="username_hint">Nombre de usuario</string>
+    <string name="phone_hint">Teléfono</string>
+    <string name="employee_id_hint">ID de Empleado</string>
+    <string name="confirm_password_hint">Confirmar contraseña</string>
+    <string name="register_button">Registrarse</string>
+    <string name="login_prompt">¿Ya tienes cuenta? Inicia sesión</string>
+
+
 
     <string name="selectDate">Selecciona una fecha</string>
 

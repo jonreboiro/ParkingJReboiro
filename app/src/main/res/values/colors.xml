@@ -1,15 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <color name="purple_500">@color/colorPrimary</color>
+    <color name="purple_700">@color/colorPrimaryVariant</color>
+    <color name="teal_200">@color/colorSecondary</color>
+    <color name="teal_700">@color/colorSecondaryVariant</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="red">#E32636</color>
+    <color name="red">#B00020</color>
     <color name="green">#008000</color>
-    <color name="orange">#FF7F50</color>
-    <color name="orangeDark">#B13102</color>
+    <color name="orange">@color/colorPrimary</color>
+    <color name="orangeDark">@color/colorPrimaryVariant</color>
     <color name="gray">#888888</color>
-    <color name="md_theme_primaryContainer">#FFE0B2</color>
+    <color name="md_theme_primaryContainer">#E3F2FD</color>
+    <!-- Primary -->
+    <color name="colorPrimary">#0D47A1</color>
+    <color name="colorPrimaryVariant">#1976D2</color>
+    <color name="colorOnPrimary">#FFFFFF</color>
+
+    <!-- Secondary -->
+    <color name="colorSecondary">#009688</color>
+    <color name="colorSecondaryVariant">#00796B</color>
+    <color name="colorOnSecondary">#FFFFFF</color>
+
+    <!-- Background / Surface -->
+    <color name="colorBackground">#F5F5F5</color>
+    <color name="colorSurface">#FFFFFF</color>
+    <color name="colorOnBackground">#212121</color>
+    <color name="colorOnSurface">#212121</color>
+
+    <!-- Error (mantener si lo usas) -->
+    <color name="colorError">#B00020</color>
+    <color name="colorOnError">#FFFFFF</color>
 </resources>

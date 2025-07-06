@@ -2,32 +2,32 @@
     <!-- Base application theme. -->
     <style name="Theme.ParkingLKS" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/orange</item>
-        <item name="colorPrimaryVariant">@color/orange</item>
-        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
+        <item name="colorOnPrimary">@color/colorOnPrimary</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_700</item>
-        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondary">@color/colorSecondary</item>
+        <item name="colorSecondaryVariant">@color/colorSecondaryVariant</item>
+        <item name="colorOnSecondary">@color/colorOnSecondary</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
-        <item name="android:textColorHint">@color/orangeDark</item>
+        <item name="android:textColorHint">@color/colorSecondaryVariant</item>
     </style>
 
     <style name="ThemeOverlay_MaterialComponents_Dialog_Map" parent="Theme.MaterialComponents.Light.Dialog">
-        <item name="colorPrimary">@color/orange</item>
-        <item name="colorPrimaryVariant">@color/orangeDark</item>
-        <item name="colorAccent">@color/teal_200</item>
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryVariant</item>
+        <item name="colorAccent">@color/colorSecondary</item>
         <item name="android:background">@drawable/dialog_background</item>
-        <item name="android:textColorPrimary">@color/black</item>
+        <item name="android:textColorPrimary">@color/colorOnBackground</item>
         <item name="android:windowMinWidthMajor">80%</item>
         <item name="android:windowMinWidthMinor">80%</item>
     </style>
 
     <style name="Theme.ParkingLKS.TextInputLayout">
-        <item name="android:textColorHint">@color/orange</item>
-        <item name="hintTextColor">@color/orangeDark</item>
+        <item name="android:textColorHint">@color/colorPrimary</item>
+        <item name="hintTextColor">@color/colorPrimaryVariant</item>
     </style>
 
 </resources>

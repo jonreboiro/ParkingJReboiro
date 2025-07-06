@@ -3,42 +3,53 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:fillViewport="true"
         tools:context=".view.activity.RegisterActivity">
 
-        <com.google.android.material.textview.MaterialTextView
-            android:id="@+id/title"
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="50dp"
-            android:fontFamily="sans-serif-black"
-            android:text="Registro Parking"
-            android:textAlignment="center"
-            android:textSize="30sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:padding="16dp">
 
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="30dp"
-            android:layout_marginTop="30dp"
-            android:orientation="vertical"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/title">
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="48dp"
+                android:fontFamily="sans-serif-black"
+                android:text="@string/app_title"
+                android:textColor="@color/orange"
+                android:textSize="36sp"
+                android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/register_subtitle"
+                android:textSize="18sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/title" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/usernameLayout"
                 style="@style/Theme.ParkingLKS.TextInputLayout"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:hint="Nombre de usuario*">
+                android:layout_marginTop="32dp"
+                android:hint="@string/username_hint"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/subtitle"
+                app:layout_constraintWidth_max="400dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/usernameText"
@@ -50,10 +61,14 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/emailLayout"
                 style="@style/Theme.ParkingLKS.TextInputLayout"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:hint="Email*">
+                android:layout_marginTop="16dp"
+                android:hint="@string/email_hint"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/usernameLayout"
+                app:layout_constraintWidth_max="400dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/emailText"
@@ -65,10 +80,14 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/phoneLayout"
                 style="@style/Theme.ParkingLKS.TextInputLayout"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:hint="Teléfono">
+                android:layout_marginTop="16dp"
+                android:hint="@string/phone_hint"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/emailLayout"
+                app:layout_constraintWidth_max="400dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/phoneText"
@@ -80,10 +99,14 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/employeeIdLayout"
                 style="@style/Theme.ParkingLKS.TextInputLayout"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:hint="ID Empleado*">
+                android:layout_marginTop="16dp"
+                android:hint="@string/employee_id_hint"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/phoneLayout"
+                app:layout_constraintWidth_max="400dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/employeeIdText"
@@ -95,11 +118,15 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/passwordLayout"
                 style="@style/Theme.ParkingLKS.TextInputLayout"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:hint="Contraseña*"
-                app:endIconMode="password_toggle">
+                android:layout_marginTop="16dp"
+                android:hint="@string/password_hint"
+                app:endIconMode="password_toggle"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/employeeIdLayout"
+                app:layout_constraintWidth_max="400dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/passwordText"
@@ -111,11 +138,15 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/confirmPasswordLayout"
                 style="@style/Theme.ParkingLKS.TextInputLayout"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                android:hint="Confirmar contraseña*"
-                app:endIconMode="password_toggle">
+                android:layout_marginTop="16dp"
+                android:hint="@string/confirm_password_hint"
+                app:endIconMode="password_toggle"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/passwordLayout"
+                app:layout_constraintWidth_max="400dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/confirmPasswordText"
@@ -126,19 +157,33 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRegister"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Registrarse" />
+                android:layout_marginTop="32dp"
+                android:minHeight="48dp"
+                android:paddingVertical="12dp"
+                android:text="@string/register_button"
+                app:cornerRadius="8dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/confirmPasswordLayout"
+                app:layout_constraintWidth_max="400dp" />
 
             <TextView
                 android:id="@+id/goToLogin"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:gravity="center"
-                android:text="¿Ya tienes cuenta? Inicia sesión"
-                android:textColor="@color/orange" />
-        </LinearLayout>
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="16dp"
+                android:padding="8dp"
+                android:text="@string/login_prompt"
+                android:textColor="@color/orange"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/btnRegister"
+                app:layout_constraintVertical_bias="0.0" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
 </layout>

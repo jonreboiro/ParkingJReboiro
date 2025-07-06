@@ -4,24 +4,20 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.lksnext.parkingJReboiro.data.DataRepository;
+import com.lksnext.parkingJReboiro.domain.Callback;
 import com.lksnext.parkingJReboiro.domain.User;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 public class ProfileViewModel extends ViewModel {
 
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
+    private final DataRepository repository;
+    private final FirebaseAuth mAuth;
 
     private MutableLiveData<User> userData = new MutableLiveData<>();
     private MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
@@ -31,11 +27,9 @@ public class ProfileViewModel extends ViewModel {
     private MutableLiveData<Boolean> passwordChangeSuccess = new MutableLiveData<>();
     private MutableLiveData<List<String>> matriculasList = new MutableLiveData<>(new ArrayList<>());
 
-
-
     public ProfileViewModel() {
+        repository = DataRepository.getInstance();
         mAuth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
 
         // Verificar si hay usuario logueado
         if (mAuth.getCurrentUser() == null) {
@@ -54,30 +48,16 @@ public class ProfileViewModel extends ViewModel {
 
         isLoading.setValue(true);
         String uid = currentUser.getUid();
-        DocumentReference docRef = db.collection("users").document(uid);
 
-        docRef.get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        User user = new User();
-                        user.setUsername(documentSnapshot.getString("username"));
-                        user.setEmail(documentSnapshot.getString("email"));
-                        user.setPhone(documentSnapshot.getString("phone"));
-                        user.setEmployeeId(documentSnapshot.getString("employeeId"));
-
-                        List<String> matriculas = (List<String>) documentSnapshot.get("matriculas");
-                        if (matriculas != null) {
-                            user.setMatriculas(matriculas);
-                            matriculasList.setValue(matriculas);
-                        }
-                        userData.setValue(user);
-                    }
-                    isLoading.setValue(false);
-                })
-                .addOnFailureListener(e -> {
-                    errorMessage.setValue("Error al cargar datos: " + e.getMessage());
-                    isLoading.setValue(false);
-                });
+        repository.getUserProfile(uid).observeForever(user -> {
+            if (user != null) {
+                userData.setValue(user);
+                if (user.getMatriculas() != null) {
+                    matriculasList.setValue(user.getMatriculas());
+                }
+            }
+            isLoading.setValue(false);
+        });
     }
 
     public void updateUserProfile(String username, String email, String phone, String employeeId) {
@@ -91,30 +71,34 @@ public class ProfileViewModel extends ViewModel {
             return;
         }
 
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) {
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
             navigateToLogin.setValue(true);
             return;
         }
 
         isLoading.setValue(true);
-        String uid = user.getUid();
 
-        Map<String, Object> datos = new HashMap<>();
-        datos.put("username", username);
-        datos.put("email", email);
-        datos.put("phone", phone);
-        datos.put("employeeId", employeeId);
+        User user = new User();
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPhone(phone);
+        user.setEmployeeId(employeeId);
+        user.setMatriculas(matriculasList.getValue());
 
-        db.collection("users").document(uid).set(datos)
-                .addOnSuccessListener(aVoid -> {
-                    updateSuccess.setValue(true);
-                    isLoading.setValue(false);
-                })
-                .addOnFailureListener(e -> {
-                    errorMessage.setValue("Error al guardar cambios: " + e.getMessage());
-                    isLoading.setValue(false);
-                });
+        repository.updateUserProfile(user, new Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                updateSuccess.setValue(true);
+                isLoading.setValue(false);
+            }
+
+            @Override
+            public void onError(String message) {
+                errorMessage.setValue("Error al guardar cambios: " + message);
+                isLoading.setValue(false);
+            }
+        });
     }
 
     public void changePassword(String newPassword, String currentPassword) {
@@ -123,34 +107,22 @@ public class ProfileViewModel extends ViewModel {
             return;
         }
 
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null || user.getEmail() == null) {
-            errorMessage.setValue("Necesitas volver a iniciar sesión para cambiar la contraseña");
-            navigateToLogin.setValue(true);
-            return;
-        }
-
         isLoading.setValue(true);
 
-        AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), currentPassword);
-        user.reauthenticate(credential)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        user.updatePassword(newPassword)
-                                .addOnCompleteListener(task1 -> {
-                                    isLoading.setValue(false);
-                                    if (task1.isSuccessful()) {
-                                        passwordChangeSuccess.setValue(true);
-                                    } else {
-                                        errorMessage.setValue("Error al cambiar la contraseña");
-                                        passwordChangeSuccess.setValue(false);
-                                    }
-                                });
-                    } else {
-                        isLoading.setValue(false);
-                        errorMessage.setValue("Contraseña actual incorrecta");
-                    }
-                });
+        repository.changePassword(currentPassword, newPassword, new Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                passwordChangeSuccess.setValue(true);
+                isLoading.setValue(false);
+            }
+
+            @Override
+            public void onError(String message) {
+                errorMessage.setValue(message);
+                passwordChangeSuccess.setValue(false);
+                isLoading.setValue(false);
+            }
+        });
     }
 
     public void addPlate(String matricula) {
@@ -159,37 +131,21 @@ public class ProfileViewModel extends ViewModel {
             return;
         }
 
-        List<String> currentList = matriculasList.getValue();
-        if (currentList != null && currentList.contains(matricula)) {
-            errorMessage.setValue("Esta matrícula ya está registrada.");
-            return;
-        }
-
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) {
-            navigateToLogin.setValue(true);
-            return;
-        }
-
         isLoading.setValue(true);
-        String uid = user.getUid();
 
-        List<String> updatedList = new ArrayList<>();
-        if (currentList != null) {
-            updatedList.addAll(currentList);
-        }
-        updatedList.add(matricula);
+        repository.addMatricula(matricula, new Callback<List<String>>() {
+            @Override
+            public void onSuccess(List<String> updatedList) {
+                matriculasList.setValue(updatedList);
+                isLoading.setValue(false);
+            }
 
-        db.collection("users").document(uid)
-                .update("matriculas", updatedList)
-                .addOnSuccessListener(aVoid -> {
-                    matriculasList.setValue(updatedList);
-                    isLoading.setValue(false);
-                })
-                .addOnFailureListener(e -> {
-                    errorMessage.setValue("Error al guardar la matrícula: " + e.getMessage());
-                    isLoading.setValue(false);
-                });
+            @Override
+            public void onError(String message) {
+                errorMessage.setValue(message);
+                isLoading.setValue(false);
+            }
+        });
     }
 
     public void removePlate(String matricula) {
@@ -198,34 +154,35 @@ public class ProfileViewModel extends ViewModel {
             return;
         }
 
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) {
-            navigateToLogin.setValue(true);
-            return;
-        }
-
         isLoading.setValue(true);
-        String uid = user.getUid();
 
-        List<String> updatedList = new ArrayList<>(currentList);
-        updatedList.remove(matricula);
+        repository.removeMatricula(matricula, new Callback<List<String>>() {
+            @Override
+            public void onSuccess(List<String> updatedList) {
+                matriculasList.setValue(updatedList);
+                isLoading.setValue(false);
+            }
 
-        db.collection("users").document(uid)
-                .update("matriculas", updatedList)
-                .addOnSuccessListener(aVoid -> {
-                    matriculasList.setValue(updatedList);
-                    isLoading.setValue(false);
-                })
-                .addOnFailureListener(e -> {
-                    errorMessage.setValue("Error al eliminar la matrícula: " + e.getMessage());
-                    isLoading.setValue(false);
-                });
+            @Override
+            public void onError(String message) {
+                errorMessage.setValue("Error al eliminar la matrícula: " + message);
+                isLoading.setValue(false);
+            }
+        });
     }
 
-
     public void logout() {
-        mAuth.signOut();
-        navigateToLogin.setValue(true);
+        repository.signOut(new Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                navigateToLogin.setValue(true);
+            }
+
+            @Override
+            public void onError(String message) {
+                errorMessage.setValue(message);
+            }
+        });
     }
 
     private boolean isValidPhone(String phone) {

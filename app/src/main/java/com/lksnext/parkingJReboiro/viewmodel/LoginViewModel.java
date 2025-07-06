@@ -1,7 +1,6 @@
 package com.lksnext.parkingJReboiro.viewmodel;
 
 import android.app.Application;
-import android.util.Log;
 import android.util.Patterns;
 
 import androidx.annotation.NonNull;
@@ -9,15 +8,12 @@ import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.GoogleAuthProvider;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.lksnext.parkingJReboiro.data.DataRepository;
+import com.lksnext.parkingJReboiro.domain.Callback;
 
 public class LoginViewModel extends AndroidViewModel {
 
-    private final FirebaseAuth mAuth;
+    private final DataRepository repository;
     private final MutableLiveData<Boolean> isLogged = new MutableLiveData<>(null);
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<String> emailError = new MutableLiveData<>();
@@ -27,7 +23,7 @@ public class LoginViewModel extends AndroidViewModel {
 
     public LoginViewModel(@NonNull Application application) {
         super(application);
-        mAuth = FirebaseAuth.getInstance();
+        repository = DataRepository.getInstance();
     }
 
     public LiveData<Boolean> isLogged() {
@@ -80,78 +76,42 @@ public class LoginViewModel extends AndroidViewModel {
     public void loginUsuario(String email, String password) {
         if (validarFormulario(email, password)) {
             isLoading.setValue(true);
-            mAuth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(task -> {
-                        isLoading.setValue(false);
-                        if (task.isSuccessful()) {
-                            isLogged.setValue(Boolean.TRUE);
-                            if (task.isSuccessful()) {
-                                isLogged.setValue(Boolean.TRUE);
-                            }
-                        } else {
-                            errorMessage.setValue(obtenerMensajeError(task.getException()));
-                            isLogged.setValue(Boolean.FALSE);
-                        }
-                    });
+            repository.loginWithEmailAndPassword(email, password, new Callback<Void>() {
+                @Override
+                public void onSuccess(Void result) {
+                    isLoading.setValue(false);
+                    isLogged.setValue(true);
+                }
+
+                @Override
+                public void onError(String message) {
+                    isLoading.setValue(false);
+                    errorMessage.setValue(message);
+                    isLogged.setValue(false);
+                }
+            });
         }
     }
 
     public void firebaseAuthWithGoogle(String idToken) {
         isLoading.setValue(true);
-        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(task -> {
-                    isLoading.setValue(false);
-                    if (task.isSuccessful()) {
-                        checkUserProfileComplete();
-                    } else {
-                        isLoading.setValue(false);
-                        errorMessage.setValue("Error autenticando con Google");
-                        isLogged.setValue(Boolean.FALSE);
-                    }
-                });
-    }
-
-    private void checkUserProfileComplete() {
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-            FirebaseFirestore.getInstance()
-                    .collection("users")
-                    .document(user.getUid())
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        isLoading.setValue(false);
-                        if (task.isSuccessful()) {
-                            if (task.getResult().exists() &&
-                                    task.getResult().contains("employeeId") &&
-                                    task.getResult().getString("employeeId") != null) {
-                                // El perfil está completo, proceder al login
-                                isLogged.setValue(Boolean.TRUE);
-                            } else {
-                                // Necesita completar el perfil
-                                needProfileCompletion.setValue(Boolean.TRUE);
-                            }
-                        } else {
-                            errorMessage.setValue("Error al verificar perfil");
-                            isLogged.setValue(Boolean.FALSE);
-                        }
-                    });
-        } else {
-            isLoading.setValue(false);
-            errorMessage.setValue("Error de autenticación");
-            isLogged.setValue(Boolean.FALSE);
-        }
-    }
-
-    private String obtenerMensajeError(Exception e) {
-        if (e != null && e.getMessage() != null) {
-            if (e.getMessage().contains("There is no user record")) {
-                return "Usuario no registrado";
+        repository.loginWithGoogle(idToken, new Callback<Boolean>() {
+            @Override
+            public void onSuccess(Boolean needsProfileCompletion) {
+                isLoading.setValue(false);
+                if (needsProfileCompletion) {
+                    needProfileCompletion.setValue(true);
+                } else {
+                    isLogged.setValue(true);
+                }
             }
-            if (e.getMessage().contains("The password is invalid")) {
-                return "Contraseña incorrecta";
+
+            @Override
+            public void onError(String message) {
+                isLoading.setValue(false);
+                errorMessage.setValue(message);
+                isLogged.setValue(false);
             }
-        }
-        return "Error al iniciar sesión: " + (e != null ? e.getMessage() : "");
+        });
     }
 }
