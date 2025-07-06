@@ -7,11 +7,20 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.lksnext.parkingJReboiro.data.DataRepository;
+import com.lksnext.parkingJReboiro.data.IDataRepository;
 import com.lksnext.parkingJReboiro.domain.Callback;
 
 public class RegisterViewModel extends ViewModel {
 
-    private final DataRepository repository = DataRepository.getInstance();
+    private final IDataRepository repository;
+
+    public RegisterViewModel(IDataRepository repository) {
+        this.repository = repository;
+    }
+
+    public RegisterViewModel() {
+        this.repository = DataRepository.getInstance();
+    }
 
     // LiveData para errores de validación
     private final MutableLiveData<String> usernameError = new MutableLiveData<>();
@@ -48,7 +57,7 @@ public class RegisterViewModel extends ViewModel {
         if (email.isEmpty()) {
             emailError.setValue("Campo obligatorio");
             esValido = false;
-        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        } else if (!isEmailValid(email)) {
             emailError.setValue("Email no válido");
             esValido = false;
         } else {
@@ -77,6 +86,10 @@ public class RegisterViewModel extends ViewModel {
         }
 
         return esValido;
+    }
+
+    private static boolean isEmailValid(String email) {
+        return email != null && email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
     }
 
     private boolean esPasswordValida(String password) {
