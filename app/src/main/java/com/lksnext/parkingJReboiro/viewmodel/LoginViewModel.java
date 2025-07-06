@@ -7,13 +7,15 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.ViewModel;
 
 import com.lksnext.parkingJReboiro.data.DataRepository;
+import com.lksnext.parkingJReboiro.data.IDataRepository;
 import com.lksnext.parkingJReboiro.domain.Callback;
 
-public class LoginViewModel extends AndroidViewModel {
+public class LoginViewModel extends ViewModel {
 
-    private final DataRepository repository;
+    private final IDataRepository repository;
     private final MutableLiveData<Boolean> isLogged = new MutableLiveData<>(null);
     private final MutableLiveData<String> errorMessage = new MutableLiveData<>();
     private final MutableLiveData<String> emailError = new MutableLiveData<>();
@@ -21,9 +23,12 @@ public class LoginViewModel extends AndroidViewModel {
     private final MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
     private final MutableLiveData<Boolean> needProfileCompletion = new MutableLiveData<>();
 
-    public LoginViewModel(@NonNull Application application) {
-        super(application);
+    public LoginViewModel() {
         repository = DataRepository.getInstance();
+    }
+
+    public LoginViewModel(@NonNull IDataRepository repository) {
+        this.repository = repository;
     }
 
     public LiveData<Boolean> isLogged() {
@@ -56,7 +61,7 @@ public class LoginViewModel extends AndroidViewModel {
         if (email.isEmpty()) {
             emailError.setValue("Campo obligatorio");
             esValido = false;
-        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+        } else if (!isEmailValid(email)) {
             emailError.setValue("Email no válido");
             esValido = false;
         } else {
@@ -71,6 +76,10 @@ public class LoginViewModel extends AndroidViewModel {
         }
 
         return esValido;
+    }
+
+    private static boolean isEmailValid(String email) {
+        return email != null && email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
     }
 
     public void loginUsuario(String email, String password) {
