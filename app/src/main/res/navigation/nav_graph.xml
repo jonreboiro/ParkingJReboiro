@@ -17,12 +17,6 @@
         android:id="@+id/action_dashboardFragment_to_consultarReservasFragment"
         app:destination="@id/consultarReservasFragment" />
     </fragment>
-    <fragment
-        android:id="@+id/mainFragment"
-        android:name="com.lksnext.parkingJReboiro.view.fragment.MainFragment"
-        android:label="@string/fragment_main"
-        tools:layout="@layout/fragment_main">
-    </fragment>
 
     <fragment
         android:id="@+id/realizarReservaFragment"
@@ -93,19 +87,6 @@
         android:id="@+id/action_seleccionarPlazaFragment_to_confirmarDetallesFragment"
         app:destination="@id/confirmarDetallesFragment" />
 
-    <!-- Navegación de ConfirmarDetalles a MainFragment -->
-    <action
-        android:id="@+id/action_confirmarDetallesFragment_to_mainFragment"
-        app:destination="@id/mainFragment" />
-
-    <action
-        android:id="@+id/action_mainFragment_to_consultarReservasFragment"
-        app:destination="@id/consultarReservasFragment" />
-
-    <action
-        android:id="@+id/action_seleccionarPlazaFragment_to_mainFragment"
-        app:destination="@id/mainFragment" />
-
     <action
         android:id="@+id/action_confirmarDetallesFragment_to_seleccionarPlazaFragment"
         app:destination="@id/seleccionarPlazaFragment"
@@ -114,6 +95,10 @@
 
     <action
         android:id="@+id/action_confirmarDetallesFragment_to_realizarReservaFragment"
+        app:destination="@id/realizarReservaFragment" />
+
+    <action
+        android:id="@+id/action_seleccionarPlazaFragment_to_realizarReservaFragment"
         app:destination="@id/realizarReservaFragment" />
 
 </navigation>

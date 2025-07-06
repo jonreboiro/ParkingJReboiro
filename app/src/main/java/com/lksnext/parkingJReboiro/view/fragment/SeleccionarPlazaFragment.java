@@ -68,7 +68,7 @@ public class SeleccionarPlazaFragment extends Fragment implements ParkingMapView
                     .setMessage("¿Estás seguro de que quieres cancelar el proceso de reserva?")
                     .setPositiveButton("Sí", (dialog, which) -> {
                         Navigation.findNavController(requireView()).navigate(
-                                R.id.action_seleccionarPlazaFragment_to_mainFragment);
+                                R.id.action_seleccionarPlazaFragment_to_realizarReservaFragment);
                     })
                     .setNegativeButton("No", null)
                     .show();

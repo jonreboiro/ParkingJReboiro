@@ -70,7 +70,7 @@ public class ConfirmarDetallesFragment extends Fragment {
         ((TextView) view.findViewById(R.id.tvTipoPlaza)).setText("Tipo de plaza: " + viewModel.getTipoPlazaTexto(viewModel.getTipoPlaza().getValue()));
 
         view.findViewById(R.id.btnCancelar).setOnClickListener(v -> {
-            Navigation.findNavController(view).navigate(R.id.action_confirmarDetallesFragment_to_mainFragment);
+            Navigation.findNavController(view).navigate(R.id.action_confirmarDetallesFragment_to_realizarReservaFragment);
         });
 
         boolean desdeAutomatico = requireArguments().getBoolean("desdeAutomatico", false);
@@ -158,7 +158,7 @@ public class ConfirmarDetallesFragment extends Fragment {
         viewModel.getReservaExitosa().observe(getViewLifecycleOwner(), success -> {
             if (Boolean.TRUE.equals(success)) {
                 Toast.makeText(getContext(), "Reserva completada con éxito", Toast.LENGTH_SHORT).show();
-                Navigation.findNavController(view).navigate(R.id.action_confirmarDetallesFragment_to_mainFragment);
+                Navigation.findNavController(view).navigate(R.id.action_confirmarDetallesFragment_to_realizarReservaFragment);
                 viewModel.reiniciar();
             }
         });

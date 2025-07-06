@@ -7,9 +7,8 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.lksnext.parkingJReboiro.data.DataRepository;
+import com.lksnext.parkingJReboiro.domain.Callback;
 import com.lksnext.parkingJReboiro.domain.Hora;
 import com.lksnext.parkingJReboiro.domain.Plaza;
 import com.lksnext.parkingJReboiro.domain.Reserva;
@@ -28,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 
 public class NuevaReservaViewModel extends ViewModel {
     private Integer selectedYear, selectedMonth, selectedDay;
+    private final DataRepository dataRepository;
 
     private final MutableLiveData<String> tiempoRestante = new MutableLiveData<>("En curso");
     private CountDownTimer countDownTimer;
@@ -54,19 +54,22 @@ public class NuevaReservaViewModel extends ViewModel {
     private final MutableLiveData<Plaza> plazaDisponible = new MutableLiveData<>();
     private final MutableLiveData<Boolean> busquedaIntentada = new MutableLiveData<>(false);
     private final MutableLiveData<String> plazaTipoSeleccionada = new MutableLiveData<>("normal");
-    public LiveData<String> getPlazaTipoSeleccionada() { return plazaTipoSeleccionada; }
     private final MutableLiveData<String> matricula = new MutableLiveData<>();
     private final MutableLiveData<Boolean> guardarMatricula = new MutableLiveData<>(false);
 
-    public void setPlazaTipoSeleccionada(String tipo) { plazaTipoSeleccionada.setValue(tipo); }
+    public NuevaReservaViewModel() {
+        // Obtenemos la instancia del repositorio
+        dataRepository = DataRepository.getInstance();
+    }
 
+    // Getters y setters (sin cambios)
+    public LiveData<String> getPlazaTipoSeleccionada() { return plazaTipoSeleccionada; }
+    public void setPlazaTipoSeleccionada(String tipo) { plazaTipoSeleccionada.setValue(tipo); }
     public LiveData<Plaza> getPlazaDisponible() { return plazaDisponible; }
     public LiveData<Boolean> getBusquedaIntentada() { return busquedaIntentada; }
-
     public Integer getSelectedYear() { return selectedYear; }
     public Integer getSelectedMonth() { return selectedMonth; }
     public Integer getSelectedDay() { return selectedDay; }
-    // Getters para LiveData
     public LiveData<String> getFecha() { return fecha; }
     public LiveData<Integer> getHoraInicio() { return horaInicio; }
     public LiveData<Integer> getMinutosInicio() { return minutosInicio; }
@@ -77,25 +80,19 @@ public class NuevaReservaViewModel extends ViewModel {
     public LiveData<String> getMensajeError() { return mensajeError; }
     public LiveData<Boolean> getCargando() { return cargando; }
     public LiveData<Boolean> getReservaExitosa() { return reservaExitosa; }
-
-    // Setters
     public void setFecha(String fecha) { this.fecha.setValue(fecha); }
     public void setHoraInicio(int hora) { this.horaInicio.setValue(hora); }
     public void setMinutosInicio(int minutos) { this.minutosInicio.setValue(minutos); }
     public void setDuracion(int duracion) { this.duracion.setValue(duracion); }
     public LiveData<String> getMatricula() { return matricula; }
     public void setMatricula(String matricula) { this.matricula.setValue(matricula); }
-
     public LiveData<Boolean> getGuardarMatricula() { return guardarMatricula; }
     public void setGuardarMatricula(boolean guardar) { this.guardarMatricula.setValue(guardar); }
+    public LiveData<String> getTiempoRestante() { return tiempoRestante; }
 
     public void seleccionarPlaza(long id, String tipo) {
         this.plazaId.setValue(id);
         this.tipoPlaza.setValue(tipo);
-    }
-
-    public LiveData<String> getTiempoRestante() {
-        return tiempoRestante;
     }
 
     private void iniciarTemporizador(long tiempoRestanteMs) {
@@ -165,41 +162,28 @@ public class NuevaReservaViewModel extends ViewModel {
         }
 
         cargando.setValue(true);
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("reservas")
-                .whereEqualTo("fecha", fecha.getValue())
-                .get()
-                .addOnSuccessListener(reservasSnap -> {
-                    Set<Long> plazasOcup = new HashSet<>();
+        long inicioMs = (horaInicio.getValue() * 60L + minutosInicio.getValue()) * 60_000L;
+        long finMs = inicioMs + duracion.getValue() * 60 * 60_000L;
 
-                    long miInicio = (horaInicio.getValue() * 60L + minutosInicio.getValue()) * 60_000L;
-                    long miFin = miInicio + duracion.getValue() * 60 * 60_000L;
-
-                    for (QueryDocumentSnapshot doc : reservasSnap) {
-                        Reserva reserva = doc.toObject(Reserva.class);
-                        long plazaId = reserva.getPlazaId().getId();
-
-                        // Filtrar por planta
-                        boolean esDePlanta = (planta == 0 && plazaId >= 13 && plazaId <= 27)
-                                || (planta == -1 && plazaId >= 1 && plazaId <= 12);
-
-                        if (esDePlanta) {
-                            long reservaInicio = reserva.getHoraInicio().getHoraInicio();
-                            long reservaFin = reserva.getHoraInicio().getHoraFin();
-
-                            if (miInicio < reservaFin && reservaInicio < miFin) {
-                                plazasOcup.add(plazaId);
-                            }
-                        }
+        dataRepository.getPlazasOcupadasPorPlanta(
+                fecha.getValue(),
+                inicioMs,
+                finMs,
+                planta,
+                new Callback<Set<Long>>() {
+                    @Override
+                    public void onSuccess(Set<Long> plazasOcup) {
+                        plazasOcupadas.setValue(plazasOcup);
+                        cargando.setValue(false);
                     }
 
-                    plazasOcupadas.setValue(plazasOcup);
-                    cargando.setValue(false);
-                })
-                .addOnFailureListener(e -> {
-                    mensajeError.setValue("Error al cargar reservas");
-                    cargando.setValue(false);
-                });
+                    @Override
+                    public void onError(String message) {
+                        mensajeError.setValue("Error al cargar reservas: " + message);
+                        cargando.setValue(false);
+                    }
+                }
+        );
     }
 
     public boolean esMatriculaEspanolaValida(String matricula) {
@@ -226,119 +210,67 @@ public class NuevaReservaViewModel extends ViewModel {
         }
 
         cargando.setValue(true);
-
         long inicioMs = (horaInicio.getValue() * 60L + minutosInicio.getValue()) * 60_000L;
         long finMs = inicioMs + duracion.getValue() * 60 * 60_000L;
-
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("reservas")
-                .whereEqualTo("fecha", fecha.getValue())
-                .get()
-                .addOnSuccessListener(reservasSnap -> {
-                    boolean plazaOcupada = false;
-
-                    for (QueryDocumentSnapshot doc : reservasSnap) {
-                        Reserva reserva = doc.toObject(Reserva.class);
-                        if (reserva.getPlazaId().getId() == plazaId.getValue()) {
-                            long reservaInicio = reserva.getHoraInicio().getHoraInicio();
-                            long reservaFin = reserva.getHoraInicio().getHoraFin();
-
-                            if (inicioMs < reservaFin && reservaInicio < finMs) {
-                                plazaOcupada = true;
-                                break;
-                            }
-                        }
-                    }
-
-                    if (plazaOcupada) {
-                        mensajeError.setValue("La plaza ya ha sido reservada");
-                        cargando.setValue(false);
-                    } else {
-                        guardarReserva(inicioMs, finMs, context);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    mensajeError.setValue("Error al verificar disponibilidad");
-                    cargando.setValue(false);
-                });
-    }
-
-    /**
-     * Guarda una nueva reserva en Firestore
-     */
-    private void guardarReserva(long inicioMs, long finMs, Context context) {
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-        Hora hora = new Hora(inicioMs, finMs);
-        Plaza plaza = new Plaza(plazaId.getValue(), tipoPlaza.getValue());
 
         Calendar calendar = Calendar.getInstance();
         calendar.set(selectedYear, selectedMonth, selectedDay, horaInicio.getValue(), minutosInicio.getValue(), 0);
         calendar.set(Calendar.MILLISECOND, 0);
-        long NotificationInicioMs = calendar.getTimeInMillis();
+        long notificationInicioMs = calendar.getTimeInMillis();
+        long notificationFinMs = notificationInicioMs + duracion.getValue() * 60 * 60_000L;
 
-        long NotificationFinMs = NotificationInicioMs + duracion.getValue() * 60 * 60_000L;
+        Hora hora = new Hora(inicioMs, finMs);
+        Plaza plaza = new Plaza(plazaId.getValue(), tipoPlaza.getValue());
 
-        Reserva reserva = new Reserva();
-        reserva.setUserId(userId);
-        reserva.setFecha(fecha.getValue());
-        reserva.setHoraInicio(hora);
-        reserva.setPlazaId(plaza);
-        reserva.setMatricula(matricula.getValue());
+        Reserva nuevaReserva = new Reserva();
+        nuevaReserva.setFecha(fecha.getValue());
+        nuevaReserva.setHoraInicio(hora);
+        nuevaReserva.setPlazaId(plaza);
+        nuevaReserva.setMatricula(matricula.getValue());
 
-        FirebaseFirestore.getInstance().collection("reservas")
-                .add(reserva)
-                .addOnSuccessListener(documentReference -> {
-                    reserva.setId(documentReference.getId());
-                    if (Boolean.TRUE.equals(guardarMatricula.getValue())) {
-                        guardarMatriculaEnPerfil(matricula.getValue());
-                    }
-                    NotificationScheduler.scheduleNotification(context, NotificationInicioMs - 5 * 60_000, 1, "Tu reserva está por empezar", "Faltan 5 minutos para tu reserva.");
-                    NotificationScheduler.scheduleNotification(context, NotificationInicioMs, 2, "¡Reserva iniciada!", "Tu reserva ha comenzado.");
-                    NotificationScheduler.showInstantNotification(
-                            context,
-                            100,
-                            "Reserva confirmada",
-                            "Tu reserva ha sido realizada con éxito."
-                    );
-                    this.calcularTiempoRestante(reserva, context);
-                    reservaExitosa.setValue(true);
-                    cargando.setValue(false);
-                })
-                .addOnFailureListener(e -> {
-                    mensajeError.setValue("Error al guardar la reserva");
-                    cargando.setValue(false);
-                });
-    }
+        dataRepository.verificarYGuardarReserva(
+                nuevaReserva,
+                guardarMatricula.getValue(),
+                new Callback<String>() {
+                    @Override
+                    public void onSuccess(String reservaId) {
+                        nuevaReserva.setId(reservaId);
 
-    private void guardarMatriculaEnPerfil(String matricula) {
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+                        NotificationScheduler.scheduleNotification(
+                                context,
+                                notificationInicioMs - 5 * 60_000,
+                                1,
+                                "Tu reserva está por empezar",
+                                "Faltan 5 minutos para tu reserva."
+                        );
 
-        // Primero obtenemos el perfil para ver si ya existe la matrícula
-        db.collection("users").document(userId).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    List<String> matriculas = new ArrayList<>();
+                        NotificationScheduler.scheduleNotification(
+                                context,
+                                notificationInicioMs,
+                                2,
+                                "¡Reserva iniciada!",
+                                "Tu reserva ha comenzado."
+                        );
 
-                    // Si ya existe una lista de matrículas, la obtenemos
-                    if (documentSnapshot.exists() && documentSnapshot.contains("matriculas")) {
-                        List<String> matriculasExistentes = (List<String>) documentSnapshot.get("matriculas");
-                        if (matriculasExistentes != null) {
-                            matriculas.addAll(matriculasExistentes);
-                        }
+                        NotificationScheduler.showInstantNotification(
+                                context,
+                                100,
+                                "Reserva confirmada",
+                                "Tu reserva ha sido realizada con éxito."
+                        );
+
+                        calcularTiempoRestante(nuevaReserva, context);
+                        reservaExitosa.setValue(true);
+                        cargando.setValue(false);
                     }
 
-                    // Si la matrícula no está en la lista, la añadimos
-                    if (!matriculas.contains(matricula)) {
-                        matriculas.add(matricula);
-
-                        // Actualizamos el documento en Firestore
-                        db.collection("users").document(userId)
-                                .update("matriculas", matriculas)
-                                .addOnFailureListener(e ->
-                                        System.out.println("Error al guardar matrícula: " + e.getMessage()));
+                    @Override
+                    public void onError(String message) {
+                        mensajeError.setValue(message);
+                        cargando.setValue(false);
                     }
-                });
+                }
+        );
     }
 
     private void calcularTiempoRestante(Reserva reserva, Context context) {
@@ -413,83 +345,43 @@ public class NuevaReservaViewModel extends ViewModel {
         );
     }
 
-    public void buscarPlazaDisponible(String tipoPlaza) {
+    public void buscarPlazaDisponible(String tipoPlazaSeleccionada) {
         busquedaIntentada.setValue(false);
-        // Asegúrate de que fecha/hora/duración están seteados
         if (fecha.getValue() == null || horaInicio.getValue() == null || duracion.getValue() == null) {
             mensajeError.setValue("Completa todos los datos");
             return;
         }
+
         cargando.setValue(true);
+        long inicioMs = (horaInicio.getValue() * 60L + minutosInicio.getValue()) * 60_000L;
+        long finMs = inicioMs + duracion.getValue() * 60 * 60_000L;
 
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("reservas")
-                .whereEqualTo("fecha", fecha.getValue())
-                .get()
-                .addOnSuccessListener(reservasSnap -> {
-                    Set<Long> ocupadas = new HashSet<>();
-                    long miInicio = (horaInicio.getValue() * 60L + minutosInicio.getValue()) * 60_000L;
-                    long miFin = miInicio + duracion.getValue() * 60 * 60_000L;
-
-                    for (QueryDocumentSnapshot doc : reservasSnap) {
-                        Reserva reserva = doc.toObject(Reserva.class);
-                        if (tipoPlaza.equals(reserva.getPlazaId().getTipo())) {
-                            long reservaInicio = reserva.getHoraInicio().getHoraInicio();
-                            long reservaFin = reserva.getHoraInicio().getHoraFin();
-                            if (miInicio < reservaFin && reservaInicio < miFin) {
-                                ocupadas.add(reserva.getPlazaId().getId());
-                            }
+        dataRepository.buscarPlazaDisponible(
+                fecha.getValue(),
+                inicioMs,
+                finMs,
+                tipoPlazaSeleccionada,
+                new Callback<Plaza>() {
+                    @Override
+                    public void onSuccess(Plaza plaza) {
+                        if (plaza != null) {
+                            plazaId.setValue(plaza.getId());
+                            tipoPlaza.setValue(plaza.getTipo());
                         }
+                        plazaDisponible.setValue(plaza);
+                        busquedaIntentada.setValue(true);
+                        cargando.setValue(false);
                     }
 
-                    // Suponiendo que tienes un método para obtener todas las plazas de ese tipo
-                    List<Plaza> plazasTipo = obtenerPlazasPorTipo(tipoPlaza);
-                    Plaza libre = null;
-                    for (Plaza p : plazasTipo) {
-                        if (!ocupadas.contains(p.getId())) {
-                            libre = p;
-                            break;
-                        }
-                    }
-                    if (libre != null) {
-                        plazaId.setValue(libre.getId());
-                        this.tipoPlaza.setValue(tipoPlaza);
-                        plazaDisponible.setValue(libre);
-                    } else {
+                    @Override
+                    public void onError(String message) {
+                        mensajeError.setValue("Error al buscar plaza: " + message);
                         plazaDisponible.setValue(null);
+                        busquedaIntentada.setValue(true);
+                        cargando.setValue(false);
                     }
-                    busquedaIntentada.setValue(true);
-                    cargando.setValue(false);
-                })
-                .addOnFailureListener(e -> {
-                    mensajeError.setValue("Error al buscar plaza");
-                    cargando.setValue(false);
-                    plazaDisponible.setValue(null);
-                    busquedaIntentada.setValue(true);
-                });
-    }
-
-    private List<Plaza> obtenerPlazasPorTipo(String tipo) {
-        List<Plaza> plazas = new java.util.ArrayList<>();
-        switch (tipo) {
-            case "normal":
-                long[] normales = {2, 3, 4, 5, 8, 9, 10, 11, 18, 19, 20, 21, 23, 24, 25, 26, 27};
-                for (long id : normales) plazas.add(new Plaza(id, "normal"));
-                break;
-            case "moto":
-                long[] motos = {13, 14, 15, 16, 17};
-                for (long id : motos) plazas.add(new Plaza(id, "moto"));
-                break;
-            case "electrico":
-                long[] electricos = {6, 12};
-                for (long id : electricos) plazas.add(new Plaza(id, "electrico"));
-                break;
-            case "minusvalido":
-                long[] minusvalidos = {1, 7, 22};
-                for (long id : minusvalidos) plazas.add(new Plaza(id, "minusvalido"));
-                break;
-        }
-        return plazas;
+                }
+        );
     }
 
     /**
@@ -505,7 +397,6 @@ public class NuevaReservaViewModel extends ViewModel {
             case "moto": return "Moto";
         }
     }
-
 
     /**
      * Reinicia todos los datos para una nueva reserva
@@ -565,5 +456,4 @@ public class NuevaReservaViewModel extends ViewModel {
         this.selectedMonth = month;
         this.selectedDay = day;
     }
-
 }
