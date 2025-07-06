@@ -161,4 +161,13 @@ public class DataRepository {
         }
         return "Error al iniciar sesión: " + (e != null ? e.getMessage() : "");
     }
+
+    public void signOut(Callback<Void> callback) {
+        try {
+            mAuth.signOut();
+            callback.onSuccess(null);
+        } catch (Exception e) {
+            callback.onError("Error al cerrar sesión: " + e.getMessage());
+        }
+    }
 }
