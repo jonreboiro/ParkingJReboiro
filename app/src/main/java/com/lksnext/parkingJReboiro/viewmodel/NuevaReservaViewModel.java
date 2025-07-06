@@ -8,11 +8,14 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.lksnext.parkingJReboiro.data.DataRepository;
+import com.lksnext.parkingJReboiro.data.IDataRepository;
 import com.lksnext.parkingJReboiro.domain.Callback;
 import com.lksnext.parkingJReboiro.domain.Hora;
 import com.lksnext.parkingJReboiro.domain.Plaza;
 import com.lksnext.parkingJReboiro.domain.Reserva;
 import com.lksnext.parkingJReboiro.notifications.NotificationScheduler;
+import com.lksnext.parkingJReboiro.util.AndroidCountDownTimer;
+import com.lksnext.parkingJReboiro.util.ITimer;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -27,10 +30,10 @@ import java.util.concurrent.TimeUnit;
 
 public class NuevaReservaViewModel extends ViewModel {
     private Integer selectedYear, selectedMonth, selectedDay;
-    private final DataRepository dataRepository;
+    private final IDataRepository dataRepository;
 
     private final MutableLiveData<String> tiempoRestante = new MutableLiveData<>("En curso");
-    private CountDownTimer countDownTimer;
+    private ITimer countDownTimer;
     private boolean timerRunning = false;
 
     // LiveData para datos de reserva
@@ -60,6 +63,10 @@ public class NuevaReservaViewModel extends ViewModel {
     public NuevaReservaViewModel() {
         // Obtenemos la instancia del repositorio
         dataRepository = DataRepository.getInstance();
+    }
+
+    public NuevaReservaViewModel(IDataRepository dataRepository) {
+        this.dataRepository = dataRepository;
     }
 
     // Getters y setters (sin cambios)
@@ -98,21 +105,20 @@ public class NuevaReservaViewModel extends ViewModel {
     private void iniciarTemporizador(long tiempoRestanteMs) {
         detenerTemporizador();
 
-        countDownTimer = new CountDownTimer(tiempoRestanteMs, 1000) {
-            @Override
-            public void onTick(long millisUntilFinished) {
-                long horas = TimeUnit.MILLISECONDS.toHours(millisUntilFinished);
-                long minutos = TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished) % 60;
-                String tiempo = String.format("En curso - Tiempo restante: %02d:%02d", horas, minutos);
-                tiempoRestante.setValue(tiempo);
-            }
-
-            @Override
-            public void onFinish() {
-                tiempoRestante.setValue("Finalizada");
-                timerRunning = false;
-            }
-        };
+        countDownTimer = timerFactory.create(
+                tiempoRestanteMs,
+                1000,
+                millisUntilFinished -> {
+                    long horas = TimeUnit.MILLISECONDS.toHours(millisUntilFinished);
+                    long minutos = TimeUnit.MILLISECONDS.toMinutes(millisUntilFinished) % 60;
+                    String tiempo = String.format("En curso - Tiempo restante: %02d:%02d", horas, minutos);
+                    tiempoRestante.setValue(tiempo);
+                },
+                () -> {
+                    tiempoRestante.setValue("Finalizada");
+                    timerRunning = false;
+                }
+        );
 
         countDownTimer.start();
         timerRunning = true;
@@ -456,4 +462,17 @@ public class NuevaReservaViewModel extends ViewModel {
         this.selectedMonth = month;
         this.selectedDay = day;
     }
+
+    public interface TimerFactory {
+        ITimer create(long millisInFuture, long countDownInterval, java.util.function.LongConsumer onTick, Runnable onFinish);
+    }
+
+    private TimerFactory timerFactory = (millis, interval, onTick, onFinish) ->
+            new AndroidCountDownTimer(millis, interval, onTick, onFinish);
+
+    public void setTimerFactory(TimerFactory factory) {
+        this.timerFactory = factory;
+    }
+
+
 }
