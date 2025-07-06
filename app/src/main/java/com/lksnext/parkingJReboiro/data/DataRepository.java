@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
@@ -362,5 +363,99 @@ public class DataRepository {
                                         System.out.println("Error al guardar matrícula: " + e.getMessage()));
                     }
                 });
+    }
+
+    public void changePassword(String currentPassword, String newPassword, Callback<Void> callback) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null || user.getEmail() == null) {
+            callback.onError("Necesitas volver a iniciar sesión para cambiar la contraseña");
+            return;
+        }
+
+        AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), currentPassword);
+        user.reauthenticate(credential)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        user.updatePassword(newPassword)
+                                .addOnCompleteListener(task1 -> {
+                                    if (task1.isSuccessful()) {
+                                        callback.onSuccess(null);
+                                    } else {
+                                        callback.onError("Error al cambiar la contraseña");
+                                    }
+                                });
+                    } else {
+                        callback.onError("Contraseña actual incorrecta");
+                    }
+                });
+    }
+
+    public void addMatricula(String matricula, Callback<List<String>> callback) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            callback.onError("No hay usuario autenticado");
+            return;
+        }
+
+        String uid = user.getUid();
+
+        db.collection("users").document(uid)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    List<String> matriculas = new ArrayList<>();
+
+                    if (documentSnapshot.exists() && documentSnapshot.contains("matriculas")) {
+                        List<String> existingMatriculas = (List<String>) documentSnapshot.get("matriculas");
+                        if (existingMatriculas != null) {
+                            matriculas.addAll(existingMatriculas);
+                        }
+                    }
+
+                    if (matriculas.contains(matricula)) {
+                        callback.onError("Esta matrícula ya está registrada.");
+                        return;
+                    }
+
+                    matriculas.add(matricula);
+
+                    db.collection("users").document(uid)
+                            .update("matriculas", matriculas)
+                            .addOnSuccessListener(aVoid -> callback.onSuccess(matriculas))
+                            .addOnFailureListener(e -> callback.onError("Error al guardar la matrícula: " + e.getMessage()));
+                })
+                .addOnFailureListener(e -> callback.onError("Error al obtener datos: " + e.getMessage()));
+    }
+
+    public void removeMatricula(String matricula, Callback<List<String>> callback) {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) {
+            callback.onError("No hay usuario autenticado");
+            return;
+        }
+
+        String uid = user.getUid();
+
+        db.collection("users").document(uid)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (!documentSnapshot.exists() || !documentSnapshot.contains("matriculas")) {
+                        callback.onError("No se encontraron matrículas registradas");
+                        return;
+                    }
+
+                    List<String> matriculas = (List<String>) documentSnapshot.get("matriculas");
+                    if (matriculas == null || !matriculas.contains(matricula)) {
+                        callback.onError("La matrícula no está registrada");
+                        return;
+                    }
+
+                    matriculas.remove(matricula);
+
+                    db.collection("users").document(uid)
+                            .update("matriculas", matriculas)
+                            .addOnSuccessListener(aVoid -> callback.onSuccess(matriculas))
+                            .addOnFailureListener(e -> callback.onError("Error al eliminar la matrícula: " + e.getMessage()));
+                })
+                .addOnFailureListener(e -> callback.onError("Error al obtener datos: " + e.getMessage()));
     }
 }
