@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white"
+    android:fillViewport="true"
+    android:paddingHorizontal="16dp"
+    android:paddingTop="24dp"
+    android:paddingBottom="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Saludo personalizado -->
+        <TextView
+            android:id="@+id/tvSaludoUsuario"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="¡Saludos, Usuario!"
+            android:textAppearance="?attr/textAppearanceHeadline4"
+            android:textStyle="bold" />
+
+        <!-- Subtítulo -->
+        <TextView
+            android:id="@+id/tvSubtitulo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Te damos la bienvenida a tu gestor de parking"
+            android:textAppearance="@android:style/TextAppearance.Material.Subhead"
+            android:textColor="@android:color/darker_gray" />
+
+        <!-- Título de reservas activas -->
+        <TextView
+            android:id="@+id/tvReservasActivasTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Reservas activas"
+            android:textAppearance="?attr/textAppearanceHeadline6"
+            android:textStyle="bold" />
+
+        <!-- Contenedor para las reservas -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardReservas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:cardUseCompatPadding="true">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="120dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvReservasActivas"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxHeight="200dp"
+                    android:nestedScrollingEnabled="false"
+                    android:paddingVertical="8dp" />
+
+                <TextView
+                    android:id="@+id/tvEmptyReservas"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:padding="24dp"
+                    android:text="No tienes reservas activas por ahora"
+                    android:textAppearance="?attr/textAppearanceBody1"
+                    android:visibility="gone" />
+            </FrameLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Botón principal: Nueva reserva -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnNuevaReserva"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:paddingVertical="16dp"
+            android:text="Realizar nueva reserva"
+            android:textSize="16sp"
+            app:cornerRadius="12dp"
+            app:elevation="4dp"
+            app:icon="@android:drawable/ic_input_add"
+            app:iconGravity="textStart"
+            app:iconPadding="12dp" />
+
+        <!-- Botón secundario: Mis reservas -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnMisReservas"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:paddingVertical="12dp"
+            android:text="Ver mis reservas"
+            android:textSize="14sp"
+            app:cornerRadius="8dp"
+            app:icon="@android:drawable/ic_menu_recent_history"
+            app:iconGravity="textStart"
+            app:iconTint="?attr/colorPrimary" />
+
+        <!-- Contenedor para botones terciarios -->
+        <LinearLayout
+            android:id="@+id/llBotonesTerciarios"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal">
+
+            <!-- Botón terciario: Notificaciones -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnNotificaciones"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:paddingVertical="8dp"
+                android:text="Notificaciones"
+                android:textSize="12sp"
+                app:icon="@android:drawable/ic_popup_reminder"
+                app:iconGravity="textTop"
+                app:iconPadding="8dp" />
+
+            <!-- Botón terciario: Perfil -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnPerfil"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:paddingVertical="8dp"
+                android:text="Mi perfil"
+                android:textSize="12sp"
+                app:icon="@android:drawable/ic_menu_myplaces"
+                app:iconGravity="textTop"
+                app:iconPadding="8dp" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

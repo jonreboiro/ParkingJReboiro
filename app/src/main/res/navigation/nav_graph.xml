@@ -3,8 +3,20 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/mainFragment">
+    app:startDestination="@id/dashboardFragment">
 
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.lksnext.parkingJReboiro.view.fragment.DashboardFragment"
+        android:label="Dashboard"
+        tools:layout="@layout/dashboard_fragment">
+    <action
+        android:id="@+id/action_dashboardFragment_to_realizarReservaFragment"
+        app:destination="@id/realizarReservaFragment" />
+    <action
+        android:id="@+id/action_dashboardFragment_to_consultarReservasFragment"
+        app:destination="@id/consultarReservasFragment" />
+    </fragment>
     <fragment
         android:id="@+id/mainFragment"
         android:name="com.lksnext.parkingJReboiro.view.fragment.MainFragment"
