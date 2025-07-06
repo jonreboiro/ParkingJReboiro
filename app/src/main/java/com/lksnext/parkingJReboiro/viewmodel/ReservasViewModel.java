@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.lksnext.parkingJReboiro.data.DataRepository;
+import com.lksnext.parkingJReboiro.data.IDataRepository;
 import com.lksnext.parkingJReboiro.domain.Callback;
 import com.lksnext.parkingJReboiro.domain.Reserva;
 import com.lksnext.parkingJReboiro.domain.ReservaConTiempo;
@@ -30,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ReservasViewModel extends ViewModel {
 
-    private final DataRepository dataRepository;
+    private final IDataRepository dataRepository;
     private final MutableLiveData<List<Reserva>> reservasProximas = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<Reserva>> reservasPasadas = new MutableLiveData<>(new ArrayList<>());
     private final MutableLiveData<List<ReservaConTiempo>> reservasActivasConTiempo = new MutableLiveData<>(new ArrayList<>());
@@ -44,8 +45,13 @@ public class ReservasViewModel extends ViewModel {
     private CountDownTimer countDownTimer;
     private boolean timerRunning = false;
 
+
     public ReservasViewModel() {
         this.dataRepository = DataRepository.getInstance();
+    }
+
+    public ReservasViewModel(IDataRepository dataRepository) {
+        this.dataRepository = dataRepository;
     }
 
     // Getters para LiveData (sin cambios)
