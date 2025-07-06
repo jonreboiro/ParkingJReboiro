@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DataRepository {
+public class DataRepository implements IDataRepository{
 
     private static DataRepository instance;
     private final FirebaseAuth mAuth;
@@ -43,8 +43,10 @@ public class DataRepository {
         return instance;
     }
 
-    public FirebaseUser getCurrentUser() {
-        return mAuth.getCurrentUser();
+    @Override
+    public IFirebaseUser getCurrentUser() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        return user != null ? new FirebaseUserWrapper(user) : null;
     }
 
     public LiveData<User> getUserProfile(String uid) {
@@ -88,7 +90,7 @@ public class DataRepository {
      * Obtiene las reservas activas del usuario actual
      */
     public void getReservasUsuarioActual(final Callback<List<Reserva>> callback) {
-        FirebaseUser currentUser = getCurrentUser();
+        IFirebaseUser currentUser = getCurrentUser();
         if (currentUser == null) {
             callback.onError("No hay usuario autenticado");
             return;
