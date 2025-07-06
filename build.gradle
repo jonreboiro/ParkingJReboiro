@@ -18,6 +18,7 @@ sonar {
         property "sonar.projectKey", "jonreboiro_ParkingJReboiro"
         property "sonar.organization", "jonreboiro"
         property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.token", System.getenv('SONAR_TOKEN')
     }
 }
 allprojects {
