@@ -7,6 +7,10 @@ import androidx.lifecycle.ViewModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.lksnext.parkingJReboiro.data.DataRepository;
+import com.lksnext.parkingJReboiro.data.FirebaseAuthProvider;
+import com.lksnext.parkingJReboiro.data.IDataRepository;
+import com.lksnext.parkingJReboiro.data.IFirebaseAuthProvider;
+import com.lksnext.parkingJReboiro.data.IFirebaseUser;
 import com.lksnext.parkingJReboiro.domain.Callback;
 import com.lksnext.parkingJReboiro.domain.User;
 
@@ -16,8 +20,9 @@ import java.util.regex.Pattern;
 
 public class ProfileViewModel extends ViewModel {
 
-    private final DataRepository repository;
+    private final IDataRepository repository;
     private final FirebaseAuth mAuth;
+    private final IFirebaseAuthProvider authProvider;
 
     private MutableLiveData<User> userData = new MutableLiveData<>();
     private MutableLiveData<Boolean> isLoading = new MutableLiveData<>(false);
@@ -27,20 +32,31 @@ public class ProfileViewModel extends ViewModel {
     private MutableLiveData<Boolean> passwordChangeSuccess = new MutableLiveData<>();
     private MutableLiveData<List<String>> matriculasList = new MutableLiveData<>(new ArrayList<>());
 
-    public ProfileViewModel() {
-        repository = DataRepository.getInstance();
-        mAuth = FirebaseAuth.getInstance();
+    public ProfileViewModel(IDataRepository repository, IFirebaseAuthProvider authProvider) {
+        this.repository = repository;
+        this.mAuth = null; // Ya no usamos mAuth directamente
+        this.authProvider = authProvider;
 
         // Verificar si hay usuario logueado
-        if (mAuth.getCurrentUser() == null) {
+        if (authProvider.getCurrentUser() == null) {
             navigateToLogin.setValue(true);
         } else {
             loadUserData();
         }
     }
 
+    // Modificar el constructor existente
+    public ProfileViewModel(IDataRepository repository) {
+        this(repository, new FirebaseAuthProvider());
+    }
+
+    // Constructor default
+    public ProfileViewModel() {
+        this(DataRepository.getInstance(), new FirebaseAuthProvider());
+    }
+
     public void loadUserData() {
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        IFirebaseUser currentUser = authProvider.getCurrentUser();
         if (currentUser == null) {
             navigateToLogin.setValue(true);
             return;
@@ -71,7 +87,7 @@ public class ProfileViewModel extends ViewModel {
             return;
         }
 
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        IFirebaseUser currentUser = authProvider.getCurrentUser();
         if (currentUser == null) {
             navigateToLogin.setValue(true);
             return;

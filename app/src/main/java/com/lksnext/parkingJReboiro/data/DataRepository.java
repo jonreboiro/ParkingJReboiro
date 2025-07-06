@@ -79,6 +79,9 @@ public class DataRepository implements IDataRepository{
         userData.put("email", user.getEmail());
         userData.put("phone", user.getPhone());
         userData.put("employeeId", user.getEmployeeId());
+        if (user.getMatriculas() != null) {
+            userData.put("matriculas", user.getMatriculas());
+        }
 
         db.collection("users").document(currentUser.getUid())
                 .set(userData)
