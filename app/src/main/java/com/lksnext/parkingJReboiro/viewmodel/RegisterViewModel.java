@@ -1,21 +1,17 @@
 package com.lksnext.parkingJReboiro.viewmodel;
 
-import android.util.Log;
 import android.util.Patterns;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-
-import java.util.HashMap;
-import java.util.Map;
+import com.lksnext.parkingJReboiro.data.DataRepository;
+import com.lksnext.parkingJReboiro.domain.Callback;
 
 public class RegisterViewModel extends ViewModel {
 
-    private final FirebaseAuth mAuth = FirebaseAuth.getInstance();
+    private final DataRepository repository = DataRepository.getInstance();
 
     // LiveData para errores de validación
     private final MutableLiveData<String> usernameError = new MutableLiveData<>();
@@ -93,48 +89,18 @@ public class RegisterViewModel extends ViewModel {
     public void registrarUsuario(String username, String email, String employeeId, String phone, String password) {
         isLoading.setValue(true);
 
-        mAuth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        String uid = mAuth.getCurrentUser().getUid();
-                        Map<String, Object> userMap = new HashMap<>();
-                        userMap.put("username", username);
-                        userMap.put("email", email);
-                        userMap.put("employeeId", employeeId);
-                        userMap.put("phone", phone != null ? phone : "");
-
-                        FirebaseFirestore.getInstance()
-                                .collection("users")
-                                .document(uid)
-                                .set(userMap)
-                                .addOnSuccessListener(aVoid -> {
-                                    Log.i("REGISTER", "Usuario y datos guardados correctamente");
-                                    isLoading.setValue(false);
-                                    registrationSuccess.setValue(true);
-                                })
-                                .addOnFailureListener(e -> {
-                                    Log.e("REGISTER", "Error al guardar datos: " + e.getMessage());
-                                    isLoading.setValue(false);
-                                    errorMessage.setValue("Error al guardar datos de usuario");
-                                });
-                    } else {
-                        String error = obtenerMensajeError(task.getException());
-                        Log.e("REGISTER", "Error en el registro: " + error);
-                        isLoading.setValue(false);
-                        errorMessage.setValue(error);
-                    }
-                });
-    }
-
-    private String obtenerMensajeError(Exception e) {
-        if (e != null && e.getMessage() != null) {
-            if (e.getMessage().contains("email address is already in use")) {
-                return "El correo ya está registrado";
+        repository.registerUser(username, email, employeeId, phone, password, new Callback<Void>() {
+            @Override
+            public void onSuccess(Void result) {
+                isLoading.setValue(false);
+                registrationSuccess.setValue(true);
             }
-            if (e.getMessage().contains("The email address is badly formatted")) {
-                return "El formato del correo es incorrecto";
+
+            @Override
+            public void onError(String message) {
+                isLoading.setValue(false);
+                errorMessage.setValue(message);
             }
-        }
-        return "Error en el registro: " + (e != null ? e.getMessage() : "");
+        });
     }
 }

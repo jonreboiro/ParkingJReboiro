@@ -458,4 +458,29 @@ public class DataRepository {
                 })
                 .addOnFailureListener(e -> callback.onError("Error al obtener datos: " + e.getMessage()));
     }
+
+    public void registerUser(String username, String email, String employeeId,
+                             String phone, String password, Callback<Void> callback) {
+
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        String uid = mAuth.getCurrentUser().getUid();
+                        Map<String, Object> userMap = new HashMap<>();
+                        userMap.put("username", username);
+                        userMap.put("email", email);
+                        userMap.put("employeeId", employeeId);
+                        userMap.put("phone", phone != null ? phone : "");
+
+                        db.collection("users")
+                                .document(uid)
+                                .set(userMap)
+                                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                                .addOnFailureListener(e -> callback.onError("Error al guardar datos de usuario"));
+                    } else {
+                        String error = obtenerMensajeError(task.getException());
+                        callback.onError(error);
+                    }
+                });
+    }
 }
