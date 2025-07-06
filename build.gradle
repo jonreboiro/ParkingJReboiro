@@ -9,7 +9,17 @@ buildscript {
         classpath 'com.google.gms:google-services:4.4.2'
     }
 }
+plugins {
+    id "org.sonarqube" version "6.2.0.5505"
+}
 
+sonar {
+    properties {
+        property "sonar.projectKey", "jonreboiro_ParkingJReboiro"
+        property "sonar.organization", "jonreboiro"
+        property "sonar.host.url", "https://sonarcloud.io"
+    }
+}
 allprojects {
     repositories {
         google()
